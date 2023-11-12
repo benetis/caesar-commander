@@ -1,7 +1,8 @@
 use egui::*;
 use log::info;
+use crate::file_pane::model::FilePane;
 
-pub mod file_pane;
+mod file_pane;
 
 fn main() -> Result<(), eframe::Error> {
     let rt = tokio::runtime::Runtime::new().unwrap();
@@ -22,7 +23,7 @@ async fn async_main() -> Result<(), eframe::Error> {
 
 #[derive(Default)]
 struct Commander {
-    file_pane: file_pane::FilePane,
+    file_pane: FilePane,
 }
 
 
