@@ -1,5 +1,6 @@
 use egui::*;
-use crate::views::file_pane::model::*;
+use crate::model::*;
+use crate::views::file_pane::model::FilePane;
 
 impl FilePane {
     pub fn ui(&mut self, ui: &mut Ui) {
@@ -25,7 +26,7 @@ impl FilePane {
 
                     ui.label(format!("{} bytes", item.size));
 
-                    ui.label(&item.modified);
+                    ui.label(&item.modified.to_rfc2822());
 
                     ui.end_row();
                 }

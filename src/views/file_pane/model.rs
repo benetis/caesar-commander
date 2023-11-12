@@ -1,21 +1,5 @@
-
-pub enum ItemType {
-    File,
-    Directory,
-}
-
-pub struct Item {
-    pub name: String,
-    pub selected: bool,
-    pub item_type: ItemType,
-    pub size: u64,
-    pub modified: String,
-}
-
-pub struct Column {
-    pub name: String,
-    pub width: f32,
-}
+use chrono::{DateTime, Local};
+use crate::model::*;
 
 pub struct FilePane {
     pub items: Vec<Item>,
@@ -28,17 +12,19 @@ impl Default for FilePane {
             items: vec![
                 Item {
                     name: "file1.txt".to_string(),
+                    path: Default::default(),
                     selected: false,
                     item_type: ItemType::File,
                     size: 1024,
-                    modified: "2021-01-01 12:00:00".to_string(),
+                    modified: DateTime::default(),
                 },
                 Item {
                     name: "file directory".to_string(),
+                    path: Default::default(),
                     selected: false,
                     item_type: ItemType::Directory,
                     size: 1337,
-                    modified: "2021-01-01 12:00:00".to_string(),
+                    modified: DateTime::default()
                 },
             ],
             columns: vec![

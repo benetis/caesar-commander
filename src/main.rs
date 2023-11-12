@@ -4,6 +4,7 @@ use crate::views::file_pane::model::FilePane;
 
 mod views;
 mod file_system;
+mod model;
 
 fn main() -> Result<(), eframe::Error> {
     let rt = tokio::runtime::Runtime::new().unwrap();

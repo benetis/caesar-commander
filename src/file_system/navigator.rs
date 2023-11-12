@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use crate::views::file_pane::model::Item;
+use std::time::SystemTime;
+use chrono::{DateTime, Local};
+use crate::model::*;
 
 pub struct Navigator {
     current_path: PathBuf,
@@ -16,6 +18,36 @@ impl Navigator {
     }
 
     pub fn list_contents(&self) -> Vec<Item> {
-        todo!()
+        match fs::read_dir(&self.current_path) {
+            Ok(readDir) => {
+                readDir.map(|entry| {
+                    let entry = entry.unwrap();
+                    let path = entry.path();
+                    let name = entry.file_name().into_string().unwrap();
+                    let metadata = fs::metadata(&path).unwrap();
+                    let size = metadata.len();
+                    let modified = metadata.modified().unwrap();
+                    let modified_dt = Self::system_time_to_date_time(modified);
+                    let item_type = if metadata.is_dir() {
+                        ItemType::Directory
+                    } else {
+                        ItemType::File
+                    };
+                    Item {
+                        name,
+                        path,
+                        selected: false,
+                        item_type,
+                        size,
+                        modified: modified_dt,
+                    }
+                }).collect()
+            },
+            Err(e) => { panic!("Readdir panic, #{}", e.to_string()) }
+        }
+    }
+
+    fn system_time_to_date_time(system_time: SystemTime) -> DateTime<Local> {
+        system_time.into()
     }
 }
