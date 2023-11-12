@@ -1,9 +1,9 @@
 use egui::*;
-use crate::view::file_pane::model::*;
+use crate::views::file_pane::model::*;
 
 impl FilePane {
     pub fn ui(&mut self, ui: &mut Ui) {
-        Grid::new("file-view-1")
+        Grid::new("file-views-1")
             .num_columns(self.columns.len())
             .striped(true)
             .show(ui, |ui| {
