@@ -1,5 +1,5 @@
 use egui::*;
-use crate::file_pane::model::{FilePane, ItemType};
+use crate::view::file_pane::model::*;
 
 impl FilePane {
     pub fn ui(&mut self, ui: &mut Ui) {

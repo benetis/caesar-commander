@@ -1,8 +1,8 @@
 use egui::*;
 use log::info;
-use crate::file_pane::model::FilePane;
+use crate::view::file_pane::model::FilePane;
 
-mod file_pane;
+mod view;
 
 fn main() -> Result<(), eframe::Error> {
     let rt = tokio::runtime::Runtime::new().unwrap();
