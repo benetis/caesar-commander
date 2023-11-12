@@ -3,6 +3,7 @@ use log::info;
 use crate::views::file_pane::model::FilePane;
 
 mod views;
+mod file_system;
 
 fn main() -> Result<(), eframe::Error> {
     let rt = tokio::runtime::Runtime::new().unwrap();
