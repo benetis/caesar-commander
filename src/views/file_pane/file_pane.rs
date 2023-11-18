@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 use tokio::sync::mpsc;
 use crate::file_system::navigator::Navigator;
-use crate::model::Column;
+use crate::model::{Column, Item};
 use crate::views::file_pane::file_pane_view::FilePaneView;
 
 pub struct FilePane {
     pub view: FilePaneView,
     pub navigator: Navigator,
-    pub receiver: mpsc::Receiver<NavigatedEvent>
+    pub receiver: mpsc::Receiver<NavigatedEvent>,
 }
 
 pub enum NavigatedEvent {
@@ -19,19 +19,20 @@ pub enum NavigatedEvent {
 
 impl FilePane {
     pub fn new(navigator: Navigator) -> Self {
-        let items = navigator.list_contents();
+        let items = FilePane::select_item(&navigator.list_contents(), 0);
         let columns = Self::columns();
         let mpsc = mpsc::channel(1);
+        let breadcrumbs = navigator.breadcrumbs();
 
         Self {
             view: FilePaneView {
                 items,
                 columns,
                 sender: mpsc.0,
-                breadcrumbs: navigator.breadcrumbs()
+                breadcrumbs,
             },
             navigator,
-            receiver: mpsc.1
+            receiver: mpsc.1,
         }
     }
 
@@ -40,14 +41,15 @@ impl FilePane {
             NavigatedEvent::OpenDirectory(path) => {
                 self.navigator.open_dir(&path);
                 self.update_items();
-            },
+                self.update_selected_item(0);
+            }
             NavigatedEvent::GoUpDirectory => {
                 self.navigator.go_up();
                 self.update_items();
-            },
+                self.update_selected_item(0);
+            }
             NavigatedEvent::SelectedItem(index) => {
-                self.view.items.iter_mut().for_each(|item| item.selected = false);
-                self.view.items[*index].selected = true;
+                self.update_selected_item(*index);
             }
         }
     }
@@ -55,6 +57,21 @@ impl FilePane {
     fn update_items(&mut self) {
         self.view.items = self.navigator.list_contents();
         self.view.breadcrumbs = self.navigator.breadcrumbs();
+    }
+
+    fn update_selected_item(&mut self, index: usize) {
+        self.view.items = Self::select_item(&self.view.items, index);
+    }
+
+    fn select_item(items: &Vec<Item>, index: usize) -> Vec<Item> {
+        items.iter().enumerate().map(|(i, item)| {
+            if i == index {
+                item.selected()
+            } else {
+                item.deselected()
+            }
+        }).collect()
+
     }
 
     fn columns() -> Vec<Column> {

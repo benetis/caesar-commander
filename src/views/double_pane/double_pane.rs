@@ -8,11 +8,17 @@ pub struct DoublePane {
 
 impl Default for DoublePane {
     fn default() -> Self {
+        let home_dir = dirs::home_dir().expect("Could not find home directory");
+        let path = home_dir.join("commander-tmp");
+
+        let left_pane = FilePane::new(Navigator::new(&path));
+        let right_pane = FilePane::new(Navigator::new(&path));
+
         DoublePane {
             view: DoublePaneView {
-                left_file_pane: FilePane::new(Navigator::default()),
-                right_file_pane: FilePane::new(Navigator::default()),
-                focus_state: FocusState::LeftPane
+                left_file_pane: left_pane,
+                right_file_pane: right_pane,
+                focus_state: FocusState::LeftPane,
             }
         }
     }

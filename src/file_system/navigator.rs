@@ -11,8 +11,8 @@ pub struct Navigator {
 }
 
 impl Navigator {
-    pub fn new(initial_path: PathBuf) -> Self {
-        Navigator { current_path: initial_path }
+    pub fn new(initial_path: &PathBuf) -> Self {
+        Navigator { current_path: initial_path.clone() }
     }
 
     pub fn open_dir(&mut self, path: &PathBuf) {
@@ -70,13 +70,5 @@ impl Navigator {
 
     fn system_time_to_date_time(system_time: SystemTime) -> DateTime<Local> {
         system_time.into()
-    }
-}
-
-impl Default for Navigator {
-    fn default() -> Self {
-        let home_dir = dirs::home_dir().expect("Could not find home directory");
-        let path = home_dir.join("commander-tmp");
-        Self::new(path)
     }
 }
