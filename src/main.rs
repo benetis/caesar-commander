@@ -1,7 +1,8 @@
 use egui::*;
 use log::info;
 use crate::file_system::navigator::Navigator;
-use crate::views::file_pane::model::FilePane;
+use crate::views::file_pane::file_pane::FilePane;
+use crate::views::file_pane::file_pane_view::FilePaneView;
 
 mod views;
 mod file_system;
@@ -20,11 +21,18 @@ async fn async_main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "caesar-commander",
         options,
-        Box::new(|_cc| Box::<Commander>::default()),
+        Box::new(|_cc| {
+            let navigator = Navigator::default();
+            let file_pane = FilePane::new(&navigator);
+
+            Box::new(Commander {
+                file_pane,
+                navigator,
+            })
+        }),
     )
 }
 
-#[derive(Default)]
 struct Commander {
     file_pane: FilePane,
     navigator: Navigator,
@@ -34,7 +42,7 @@ struct Commander {
 impl eframe::App for Commander {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
-            self.file_pane.ui(ui, self.navigator.clone());
+            self.file_pane.view.ui(ui);
 
             ui.separator();
         });

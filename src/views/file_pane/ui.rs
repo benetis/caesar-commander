@@ -1,15 +1,14 @@
 use egui::*;
 use crate::file_system::navigator::Navigator;
 use crate::model::*;
-use crate::views::file_pane::model::FilePane;
+use crate::views::file_pane::file_pane_view::FilePaneView;
 
-impl FilePane {
-    pub fn ui(&mut self, ui: &mut Ui, navigator: Navigator) {
+impl FilePaneView {
+    pub fn ui(&mut self, ui: &mut Ui) {
         Grid::new("file-views-1")
             .num_columns(self.columns.len())
             .striped(true)
             .show(ui, |ui| {
-                self.load_directory(&navigator);
 
                 if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
                     self.navigate(1);
@@ -57,9 +56,5 @@ impl FilePane {
             item.selected = false;
         }
         self.items[new_index].selected = true;
-    }
-
-    fn load_directory(&mut self, navigator: &Navigator) {
-        self.items = navigator.list_contents();
     }
 }
