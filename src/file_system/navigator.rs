@@ -15,8 +15,8 @@ impl Navigator {
         Navigator { current_path: initial_path }
     }
 
-    pub fn open_folder(&mut self, path: &Path) {
-        self.current_path = path.to_path_buf();
+    pub fn open_folder(&mut self, path: &PathBuf) {
+        self.current_path = path.clone();
     }
 
     pub fn list_contents(&self) -> Vec<Item> {

@@ -23,7 +23,7 @@ async fn async_main() -> Result<(), eframe::Error> {
         options,
         Box::new(|_cc| {
             let navigator = Navigator::default();
-            let file_pane = FilePane::new(navigator.clone());
+            let mut file_pane = FilePane::new(navigator.clone());
 
             Box::new(Commander {
                 file_pane,
@@ -42,6 +42,11 @@ struct Commander {
 impl eframe::App for Commander {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
+
+            while let Ok(event) = self.file_pane.receiver.try_recv() {
+                self.file_pane.handle_navigation_events(&event.path);
+            }
+
             self.file_pane.view.ui(ui);
 
             ui.separator();
