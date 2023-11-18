@@ -1,4 +1,3 @@
-
 use egui::*;
 use crate::views::double_pane::double_pane::FocusState;
 use crate::views::file_pane::file_pane::FilePane;
@@ -6,13 +5,12 @@ use crate::views::file_pane::file_pane::FilePane;
 pub struct DoublePaneView {
     pub left_file_pane: FilePane,
     pub right_file_pane: FilePane,
-    pub focus_state: FocusState
+    pub focus_state: FocusState,
 }
 
 
 impl DoublePaneView {
     pub fn ui(&mut self, ui: &mut Ui) {
-
         while let Ok(event) = self.left_file_pane.receiver.try_recv() {
             self.left_file_pane.handle_navigation_event(&event);
         }
@@ -22,11 +20,16 @@ impl DoublePaneView {
         }
 
         ui.horizontal(|ui| {
-            ui.vertical(|ui| {
-                self.left_file_pane.view.ui(ui, "left", self.focus_state.is_left());
+            ui.with_layout(egui::Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
+                ui.allocate_ui(egui::Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
+                    self.left_file_pane.view.ui(ui, "left", self.focus_state.is_left());
+                });
             });
-            ui.vertical(|ui| {
-                self.right_file_pane.view.ui(ui, "right", self.focus_state.is_right());
+
+            ui.with_layout(egui::Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
+                ui.allocate_ui(egui::Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
+                    self.right_file_pane.view.ui(ui, "right", self.focus_state.is_right());
+                });
             });
         });
 

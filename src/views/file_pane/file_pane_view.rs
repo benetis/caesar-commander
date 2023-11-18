@@ -14,37 +14,39 @@ pub struct FilePaneView {
 
 impl FilePaneView {
     pub fn ui(&mut self, ui: &mut Ui, id_source: &str, focused: bool) {
-        ui.horizontal(|ui| {
-            ui.label("📂");
-            for crumb in &self.breadcrumbs {
-                ui.label(format!("{} /", crumb));
-            }
-        });
-
-        ui.separator();
-
-        Grid::new(id_source)
-            .num_columns(self.columns.len())
-            .striped(true)
-            .show(ui, |ui| {
-                if focused {
-                    self.handle_arrow_down(ui);
-                    self.handle_arrow_up(ui);
-                    self.handle_enter(ui);
-                    self.handle_backspace(ui);
-                }
-
-                // Headers
-                for col in &self.columns {
-                    ui.label(&col.name);
-                }
-                ui.end_row();
-
-
-                for item in &self.items {
-                    Self::draw_item_widget(ui, item);
+        ui.vertical(|ui| {
+            ui.horizontal(|ui| {
+                ui.label("📂");
+                for crumb in &self.breadcrumbs {
+                    ui.label(format!("{} /", crumb));
                 }
             });
+
+            ui.separator();
+
+            Grid::new(id_source)
+                .num_columns(self.columns.len())
+                .striped(true)
+                .show(ui, |ui| {
+                    if focused {
+                        self.handle_arrow_down(ui);
+                        self.handle_arrow_up(ui);
+                        self.handle_enter(ui);
+                        self.handle_backspace(ui);
+                    }
+
+                    // Headers
+                    for col in &self.columns {
+                        ui.label(&col.name);
+                    }
+                    ui.end_row();
+
+
+                    for item in &self.items {
+                        Self::draw_item_widget(ui, item);
+                    }
+                });
+        });
     }
 
     fn draw_item_widget(ui: &mut Ui, item: &Item) {
