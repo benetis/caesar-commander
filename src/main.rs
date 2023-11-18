@@ -1,5 +1,6 @@
 use egui::*;
 use log::info;
+use crate::file_system::navigator::Navigator;
 use crate::views::file_pane::model::FilePane;
 
 mod views;
@@ -26,13 +27,14 @@ async fn async_main() -> Result<(), eframe::Error> {
 #[derive(Default)]
 struct Commander {
     file_pane: FilePane,
+    navigator: Navigator,
 }
 
 
 impl eframe::App for Commander {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
-            self.file_pane.ui(ui);
+            self.file_pane.ui(ui, self.navigator.clone());
 
             ui.separator();
         });

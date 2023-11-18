@@ -3,7 +3,9 @@ use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 use chrono::{DateTime, Local};
 use crate::model::*;
+use dirs;
 
+#[derive(Clone)]
 pub struct Navigator {
     current_path: PathBuf,
 }
@@ -49,5 +51,13 @@ impl Navigator {
 
     fn system_time_to_date_time(system_time: SystemTime) -> DateTime<Local> {
         system_time.into()
+    }
+}
+
+impl Default for Navigator {
+    fn default() -> Self {
+        let home_dir = dirs::home_dir().expect("Could not find home directory");
+        let path = home_dir.join("commander-tmp");
+        Self::new(path)
     }
 }
