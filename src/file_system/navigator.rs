@@ -62,6 +62,12 @@ impl Navigator {
         }
     }
 
+    pub fn breadcrumbs(&self) -> Vec<String> {
+        self.current_path.iter().skip(1)
+            .map(|os_str| os_str.to_str().unwrap().to_string())
+            .collect()
+    }
+
     fn system_time_to_date_time(system_time: SystemTime) -> DateTime<Local> {
         system_time.into()
     }

@@ -27,7 +27,8 @@ impl FilePane {
             view: FilePaneView {
                 items,
                 columns,
-                sender: mpsc.0
+                sender: mpsc.0,
+                breadcrumbs: navigator.breadcrumbs()
             },
             navigator,
             receiver: mpsc.1
@@ -53,6 +54,7 @@ impl FilePane {
 
     fn update_items(&mut self) {
         self.view.items = self.navigator.list_contents();
+        self.view.breadcrumbs = self.navigator.breadcrumbs();
     }
 
     fn columns() -> Vec<Column> {

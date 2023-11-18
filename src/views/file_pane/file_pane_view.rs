@@ -7,12 +7,22 @@ use crate::model::*;
 pub struct FilePaneView {
     pub items: Vec<Item>,
     pub columns: Vec<Column>,
-    pub sender: mpsc::Sender<NavigatedEvent>
+    pub sender: mpsc::Sender<NavigatedEvent>,
+    pub breadcrumbs: Vec<String>,
 }
 
 
 impl FilePaneView {
     pub fn ui(&mut self, ui: &mut Ui, id_source: &str, focused: bool) {
+        ui.horizontal(|ui| {
+            ui.label("📂");
+            for crumb in &self.breadcrumbs {
+                ui.label(format!("{} /", crumb));
+            }
+        });
+
+        ui.separator();
+
         Grid::new(id_source)
             .num_columns(self.columns.len())
             .striped(true)
