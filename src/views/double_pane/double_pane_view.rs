@@ -20,14 +20,14 @@ impl DoublePaneView {
         }
 
         ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
-                ui.allocate_ui(egui::Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
+            ui.with_layout(Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
+                ui.allocate_ui(Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
                     self.left_file_pane.view.ui(ui, "left", self.focus_state.is_left());
                 });
             });
 
-            ui.with_layout(egui::Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
-                ui.allocate_ui(egui::Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
+            ui.with_layout(Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
+                ui.allocate_ui(Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
                     self.right_file_pane.view.ui(ui, "right", self.focus_state.is_right());
                 });
             });
@@ -43,19 +43,19 @@ impl DoublePaneView {
     }
 
     fn handle_left_arrow(&mut self, ui: &mut Ui) {
-        if ui.input(|i| i.key_pressed(egui::Key::ArrowLeft)) {
+        if ui.input(|i| i.key_pressed(Key::ArrowLeft)) {
             self.focus_state = FocusState::LeftPane;
         }
     }
 
     fn handle_right_arrow(&mut self, ui: &mut Ui) {
-        if ui.input(|i| i.key_pressed(egui::Key::ArrowRight)) {
+        if ui.input(|i| i.key_pressed(Key::ArrowRight)) {
             self.focus_state = FocusState::RightPane;
         }
     }
 
     fn handle_tab(&mut self, ui: &mut Ui) {
-        if ui.input(|i| i.key_pressed(egui::Key::Tab)) {
+        if ui.input(|i| i.key_pressed(Key::Tab)) {
             self.focus_state.next();
         }
     }
