@@ -37,6 +37,11 @@ impl FilePaneView {
                     }
                 }
 
+                if ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
+                    let event = NavigateEvent::GoUp;
+                    self.sender.try_send(event).unwrap();
+                }
+
                 // Headers
                 for col in &self.columns {
                     ui.label(&col.name);

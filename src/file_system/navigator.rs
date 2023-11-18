@@ -49,6 +49,19 @@ impl Navigator {
         }
     }
 
+    pub fn go_up(&mut self) {
+        let parent = self.current_path.parent();
+
+        match parent {
+            Some(parent) => {
+                self.current_path = parent.to_path_buf();
+            },
+            None => {
+                self.current_path = PathBuf::from("/");
+            }
+        }
+    }
+
     fn system_time_to_date_time(system_time: SystemTime) -> DateTime<Local> {
         system_time.into()
     }

@@ -12,6 +12,7 @@ pub struct FilePane {
 
 pub enum NavigateEvent {
     OpenDirectory(PathBuf),
+    GoUp,
 }
 
 
@@ -38,7 +39,11 @@ impl FilePane {
             NavigateEvent::OpenDirectory(path) => {
                 self.navigator.open_dir(&path);
                 self.update_items();
-            }
+            },
+            NavigateEvent::GoUp => {
+                self.navigator.go_up();
+                self.update_items();
+            },
         }
     }
 
