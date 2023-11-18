@@ -13,7 +13,7 @@ impl Default for FilePane {
                 Item {
                     name: "file1.txt".to_string(),
                     path: Default::default(),
-                    selected: false,
+                    selected: true,
                     item_type: ItemType::File,
                     size: 1024,
                     modified: DateTime::default(),
@@ -25,6 +25,14 @@ impl Default for FilePane {
                     item_type: ItemType::Directory,
                     size: 1337,
                     modified: DateTime::default()
+                },
+                Item {
+                    name: "file2.txt".to_string(),
+                    path: Default::default(),
+                    selected: false,
+                    item_type: ItemType::File,
+                    size: 998,
+                    modified: DateTime::default(),
                 },
             ],
             columns: vec![
