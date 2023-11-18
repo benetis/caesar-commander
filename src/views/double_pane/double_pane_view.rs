@@ -30,6 +30,19 @@ impl DoublePaneView {
             });
         });
 
+        self.handle_left_arrow(ui);
+        self.handle_right_arrow(ui);
+    }
 
+    fn handle_left_arrow(&mut self, ui: &mut Ui) {
+        if ui.input(|i| i.key_pressed(egui::Key::ArrowLeft)) {
+            self.focus_state = FocusState::LeftPane;
+        }
+    }
+
+    fn handle_right_arrow(&mut self, ui: &mut Ui) {
+        if ui.input(|i| i.key_pressed(egui::Key::ArrowRight)) {
+            self.focus_state = FocusState::RightPane;
+        }
     }
 }
