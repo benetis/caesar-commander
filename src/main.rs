@@ -23,7 +23,7 @@ async fn async_main() -> Result<(), eframe::Error> {
         options,
         Box::new(|_cc| {
             let navigator = Navigator::default();
-            let file_pane = FilePane::new(&navigator);
+            let file_pane = FilePane::new(navigator.clone());
 
             Box::new(Commander {
                 file_pane,

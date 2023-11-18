@@ -7,7 +7,7 @@ pub struct FilePane {
 }
 
 impl FilePane {
-    pub fn new(navigator: &Navigator) -> Self {
+    pub fn new(navigator: Navigator) -> Self {
         let view = FilePaneView::default();
         let items = navigator.list_contents();
 
@@ -16,7 +16,7 @@ impl FilePane {
                 items,
                 ..view
             },
-            navigator: navigator.clone(),
+            navigator,
         }
     }
 
