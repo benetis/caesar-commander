@@ -5,6 +5,7 @@ use crate::views::file_pane::file_pane::NavigateEvent;
 use egui::*;
 use crate::file_system::navigator::Navigator;
 use crate::model::*;
+
 pub struct FilePaneView {
     pub items: Vec<Item>,
     pub columns: Vec<Column>,
@@ -18,7 +19,6 @@ impl FilePaneView {
             .num_columns(self.columns.len())
             .striped(true)
             .show(ui, |ui| {
-
                 if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
                     self.navigate(1);
                 }
@@ -28,7 +28,8 @@ impl FilePaneView {
                 }
 
                 if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                    let selected_item = self.items.iter().find(|item| item.selected);
+                    let selected_item = self.items.iter()
+                        .find(|item| item.selected && item.item_type == ItemType::Directory);
                     if let Some(item) = selected_item {
                         let path = item.path.clone();
                         let event = NavigateEvent { path };

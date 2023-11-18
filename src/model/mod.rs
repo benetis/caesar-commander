@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use chrono::{DateTime, Local};
 
+#[derive(PartialEq)]
 pub enum ItemType {
     File,
     Directory,
