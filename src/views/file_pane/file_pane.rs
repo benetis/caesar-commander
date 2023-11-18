@@ -10,9 +10,10 @@ pub struct FilePane {
     pub receiver: mpsc::Receiver<NavigateEvent>,
 }
 
-pub struct NavigateEvent {
-    pub path: PathBuf,
+pub enum NavigateEvent {
+    OpenDirectory(PathBuf),
 }
+
 
 impl FilePane {
     pub fn new(navigator: Navigator) -> Self {
@@ -32,9 +33,13 @@ impl FilePane {
         }
     }
 
-    pub fn handle_navigation_events(&mut self, path_buf: &PathBuf) {
-        self.navigator.open_folder(path_buf);
-        self.update_items();
+    pub fn handle_navigation_event(&mut self, event: &NavigateEvent) {
+        match event {
+            NavigateEvent::OpenDirectory(path) => {
+                self.navigator.open_dir(&path);
+                self.update_items();
+            }
+        }
     }
 
     fn update_items(&mut self) {

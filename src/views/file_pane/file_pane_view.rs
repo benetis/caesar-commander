@@ -32,7 +32,7 @@ impl FilePaneView {
                         .find(|item| item.selected && item.item_type == ItemType::Directory);
                     if let Some(item) = selected_item {
                         let path = item.path.clone();
-                        let event = NavigateEvent { path };
+                        let event = NavigateEvent::OpenDirectory(path);
                         self.sender.try_send(event).unwrap();
                     }
                 }

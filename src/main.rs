@@ -44,7 +44,7 @@ impl eframe::App for Commander {
         CentralPanel::default().show(ctx, |ui| {
 
             while let Ok(event) = self.file_pane.receiver.try_recv() {
-                self.file_pane.handle_navigation_events(&event.path);
+                self.file_pane.handle_navigation_event(&event);
             }
 
             self.file_pane.view.ui(ui);

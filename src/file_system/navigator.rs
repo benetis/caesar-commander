@@ -15,7 +15,7 @@ impl Navigator {
         Navigator { current_path: initial_path }
     }
 
-    pub fn open_folder(&mut self, path: &PathBuf) {
+    pub fn open_dir(&mut self, path: &PathBuf) {
         self.current_path = path.clone();
     }
 
