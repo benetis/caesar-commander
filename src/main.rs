@@ -2,7 +2,6 @@ use egui::*;
 use log::info;
 use crate::file_system::navigator::Navigator;
 use crate::views::file_pane::file_pane::FilePane;
-use crate::views::file_pane::file_pane_view::FilePaneView;
 
 mod views;
 mod file_system;
@@ -22,20 +21,20 @@ async fn async_main() -> Result<(), eframe::Error> {
         "caesar-commander",
         options,
         Box::new(|_cc| {
-            let navigator = Navigator::default();
-            let mut file_pane = FilePane::new(navigator.clone());
+            let left_file_pane = FilePane::new(Navigator::default());
+            let right_file_pane = FilePane::new(Navigator::default());
 
             Box::new(Commander {
-                file_pane,
-                navigator,
+                left_file_pane,
+                right_file_pane
             })
         }),
     )
 }
 
 struct Commander {
-    file_pane: FilePane,
-    navigator: Navigator,
+    left_file_pane: FilePane,
+    right_file_pane: FilePane,
 }
 
 
@@ -43,11 +42,23 @@ impl eframe::App for Commander {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
 
-            while let Ok(event) = self.file_pane.receiver.try_recv() {
-                self.file_pane.handle_navigation_event(&event);
+            while let Ok(event) = self.left_file_pane.receiver.try_recv() {
+                self.left_file_pane.handle_navigation_event(&event);
             }
 
-            self.file_pane.view.ui(ui);
+            while let Ok(event) = self.right_file_pane.receiver.try_recv() {
+                self.right_file_pane.handle_navigation_event(&event);
+            }
+
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    self.left_file_pane.view.ui(ui, "left");
+                });
+                ui.vertical(|ui| {
+                    self.right_file_pane.view.ui(ui, "right");
+                });
+            });
+
 
             ui.separator();
         });

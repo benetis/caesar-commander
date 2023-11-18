@@ -14,8 +14,8 @@ pub struct FilePaneView {
 
 
 impl FilePaneView {
-    pub fn ui(&mut self, ui: &mut Ui) {
-        Grid::new("file-views-1")
+    pub fn ui(&mut self, ui: &mut Ui, id_source: &str) {
+        Grid::new(id_source)
             .num_columns(self.columns.len())
             .striped(true)
             .show(ui, |ui| {
