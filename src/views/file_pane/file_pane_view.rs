@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use tokio::sync::mpsc;
 use crate::model::*;
-use crate::views::file_pane::file_pane::NavigateEvent;
+use crate::views::file_pane::file_pane::NavigatedEvent;
 use egui::*;
 use crate::file_system::navigator::Navigator;
 use crate::model::*;
@@ -9,7 +9,7 @@ use crate::model::*;
 pub struct FilePaneView {
     pub items: Vec<Item>,
     pub columns: Vec<Column>,
-    pub sender: mpsc::Sender<NavigateEvent>,
+    pub sender: mpsc::Sender<NavigatedEvent>,
 }
 
 
@@ -32,13 +32,13 @@ impl FilePaneView {
                         .find(|item| item.selected && item.item_type == ItemType::Directory);
                     if let Some(item) = selected_item {
                         let path = item.path.clone();
-                        let event = NavigateEvent::OpenDirectory(path);
+                        let event = NavigatedEvent::OpenDirectory(path);
                         self.sender.try_send(event).unwrap();
                     }
                 }
 
                 if ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
-                    let event = NavigateEvent::GoUp;
+                    let event = NavigatedEvent::GoUp;
                     self.sender.try_send(event).unwrap();
                 }
 

@@ -7,10 +7,10 @@ use crate::views::file_pane::file_pane_view::FilePaneView;
 pub struct FilePane {
     pub view: FilePaneView,
     pub navigator: Navigator,
-    pub receiver: mpsc::Receiver<NavigateEvent>,
+    pub receiver: mpsc::Receiver<NavigatedEvent>,
 }
 
-pub enum NavigateEvent {
+pub enum NavigatedEvent {
     OpenDirectory(PathBuf),
     GoUp,
 }
@@ -34,13 +34,13 @@ impl FilePane {
         }
     }
 
-    pub fn handle_navigation_event(&mut self, event: &NavigateEvent) {
+    pub fn handle_navigation_event(&mut self, event: &NavigatedEvent) {
         match event {
-            NavigateEvent::OpenDirectory(path) => {
+            NavigatedEvent::OpenDirectory(path) => {
                 self.navigator.open_dir(&path);
                 self.update_items();
             },
-            NavigateEvent::GoUp => {
+            NavigatedEvent::GoUp => {
                 self.navigator.go_up();
                 self.update_items();
             },
