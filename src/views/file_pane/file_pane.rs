@@ -12,7 +12,8 @@ pub struct FilePane {
 
 pub enum NavigatedEvent {
     OpenDirectory(PathBuf),
-    GoUp,
+    GoUpDirectory,
+    SelectedItem(usize),
 }
 
 
@@ -39,10 +40,14 @@ impl FilePane {
                 self.navigator.open_dir(&path);
                 self.update_items();
             },
-            NavigatedEvent::GoUp => {
+            NavigatedEvent::GoUpDirectory => {
                 self.navigator.go_up();
                 self.update_items();
             },
+            NavigatedEvent::SelectedItem(index) => {
+                self.view.items.iter_mut().for_each(|item| item.selected = false);
+                self.view.items[*index].selected = true;
+            }
         }
     }
 

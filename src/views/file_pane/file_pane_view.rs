@@ -58,16 +58,14 @@ impl FilePaneView {
             .unwrap_or(0) as isize;
         let new_index = (current_index + direction).rem_euclid(len) as usize;
 
-        for item in &mut self.items {
-            item.selected = false;
-        }
-        self.items[new_index].selected = true;
+        let event = NavigatedEvent::SelectedItem(new_index);
+        self.sender.try_send(event).unwrap();
     }
 
 
     fn handle_backspace(&mut self, ui: &mut Ui) {
         if ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
-            let event = NavigatedEvent::GoUp;
+            let event = NavigatedEvent::GoUpDirectory;
             self.sender.try_send(event).unwrap();
         }
     }
