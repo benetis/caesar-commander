@@ -37,4 +37,11 @@ impl FocusState {
             FocusState::RightPane => true,
         }
     }
+
+    pub fn next(&mut self) {
+        match self {
+            FocusState::LeftPane => *self = FocusState::RightPane,
+            FocusState::RightPane => *self = FocusState::LeftPane,
+        }
+    }
 }

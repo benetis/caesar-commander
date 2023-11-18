@@ -30,8 +30,13 @@ impl DoublePaneView {
             });
         });
 
+        self.handle_focus_switch(ui);
+    }
+
+    fn handle_focus_switch(&mut self, ui: &mut Ui) {
         self.handle_left_arrow(ui);
         self.handle_right_arrow(ui);
+        self.handle_tab(ui);
     }
 
     fn handle_left_arrow(&mut self, ui: &mut Ui) {
@@ -43,6 +48,12 @@ impl DoublePaneView {
     fn handle_right_arrow(&mut self, ui: &mut Ui) {
         if ui.input(|i| i.key_pressed(egui::Key::ArrowRight)) {
             self.focus_state = FocusState::RightPane;
+        }
+    }
+
+    fn handle_tab(&mut self, ui: &mut Ui) {
+        if ui.input(|i| i.key_pressed(egui::Key::Tab)) {
+            self.focus_state.next();
         }
     }
 }
