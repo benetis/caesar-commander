@@ -7,7 +7,7 @@ use crate::views::file_pane::file_pane_view::FilePaneView;
 pub struct FilePane {
     pub view: FilePaneView,
     pub navigator: Navigator,
-    pub receiver: mpsc::Receiver<NavigatedEvent>,
+    pub receiver: mpsc::Receiver<NavigatedEvent>
 }
 
 pub enum NavigatedEvent {
@@ -26,11 +26,10 @@ impl FilePane {
             view: FilePaneView {
                 items,
                 columns,
-
-                sender: mpsc.0,
+                sender: mpsc.0
             },
             navigator,
-            receiver: mpsc.1,
+            receiver: mpsc.1
         }
     }
 

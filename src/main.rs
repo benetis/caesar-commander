@@ -1,6 +1,7 @@
 use egui::*;
 use log::info;
 use crate::file_system::navigator::Navigator;
+use crate::model::focus_state::FocusState;
 use crate::views::file_pane::file_pane::FilePane;
 
 mod views;
@@ -26,7 +27,8 @@ async fn async_main() -> Result<(), eframe::Error> {
 
             Box::new(Commander {
                 left_file_pane,
-                right_file_pane
+                right_file_pane,
+                focus_state: FocusState::LeftPane,
             })
         }),
     )
@@ -35,6 +37,7 @@ async fn async_main() -> Result<(), eframe::Error> {
 struct Commander {
     left_file_pane: FilePane,
     right_file_pane: FilePane,
+    focus_state: FocusState
 }
 
 
@@ -52,10 +55,10 @@ impl eframe::App for Commander {
 
             ui.horizontal(|ui| {
                 ui.vertical(|ui| {
-                    self.left_file_pane.view.ui(ui, "left");
+                    self.left_file_pane.view.ui(ui, "left", self.focus_state.is_left());
                 });
                 ui.vertical(|ui| {
-                    self.right_file_pane.view.ui(ui, "right");
+                    self.right_file_pane.view.ui(ui, "right", self.focus_state.is_right());
                 });
             });
 

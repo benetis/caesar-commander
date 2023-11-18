@@ -1,45 +1,27 @@
-use chrono::{DateTime, Local};
 use tokio::sync::mpsc;
 use crate::model::*;
 use crate::views::file_pane::file_pane::NavigatedEvent;
 use egui::*;
-use crate::file_system::navigator::Navigator;
 use crate::model::*;
 
 pub struct FilePaneView {
     pub items: Vec<Item>,
     pub columns: Vec<Column>,
-    pub sender: mpsc::Sender<NavigatedEvent>,
+    pub sender: mpsc::Sender<NavigatedEvent>
 }
 
 
 impl FilePaneView {
-    pub fn ui(&mut self, ui: &mut Ui, id_source: &str) {
+    pub fn ui(&mut self, ui: &mut Ui, id_source: &str, focused: bool) {
         Grid::new(id_source)
             .num_columns(self.columns.len())
             .striped(true)
             .show(ui, |ui| {
-                if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-                    self.navigate(1);
-                }
-
-                if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-                    self.navigate(-1);
-                }
-
-                if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                    let selected_item = self.items.iter()
-                        .find(|item| item.selected && item.item_type == ItemType::Directory);
-                    if let Some(item) = selected_item {
-                        let path = item.path.clone();
-                        let event = NavigatedEvent::OpenDirectory(path);
-                        self.sender.try_send(event).unwrap();
-                    }
-                }
-
-                if ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
-                    let event = NavigatedEvent::GoUp;
-                    self.sender.try_send(event).unwrap();
+                if focused {
+                    self.handle_arrow_down(ui);
+                    self.handle_arrow_up(ui);
+                    self.handle_enter(ui);
+                    self.handle_backspace(ui);
                 }
 
                 // Headers
@@ -80,5 +62,37 @@ impl FilePaneView {
             item.selected = false;
         }
         self.items[new_index].selected = true;
+    }
+
+
+    fn handle_backspace(&mut self, ui: &mut Ui) {
+        if ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
+            let event = NavigatedEvent::GoUp;
+            self.sender.try_send(event).unwrap();
+        }
+    }
+
+    fn handle_enter(&mut self, ui: &mut Ui) {
+        if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+            let selected_item = self.items.iter()
+                .find(|item| item.selected && item.item_type == ItemType::Directory);
+            if let Some(item) = selected_item {
+                let path = item.path.clone();
+                let event = NavigatedEvent::OpenDirectory(path);
+                self.sender.try_send(event).unwrap();
+            }
+        }
+    }
+
+    fn handle_arrow_up(&mut self, ui: &mut Ui) {
+        if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
+            self.navigate(-1);
+        }
+    }
+
+    fn handle_arrow_down(&mut self, ui: &mut Ui) {
+        if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
+            self.navigate(1);
+        }
     }
 }
