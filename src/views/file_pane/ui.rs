@@ -10,12 +10,10 @@ impl FilePane {
             .show(ui, |ui| {
                 if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
                     self.navigate(1);
-                    println!("Arrow down");
                 }
 
                 if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
                     self.navigate(-1);
-                    println!("Arrow up");
                 }
 
                 // Headers
