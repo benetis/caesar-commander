@@ -66,6 +66,8 @@ impl FilePaneView {
 
     fn navigate(&mut self, direction: isize) {
         let len = self.items.len() as isize;
+        if len == 0 { return; }
+
         let current_index = self.items.iter().position(|item| item.selected)
             .unwrap_or(0) as isize;
         let new_index = (current_index + direction).rem_euclid(len) as usize;
