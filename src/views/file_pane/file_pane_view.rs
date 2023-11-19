@@ -3,6 +3,8 @@ use crate::model::*;
 use crate::views::file_pane::file_pane::NavigatedEvent;
 use egui::*;
 use egui::text::LayoutJob;
+use log::info;
+use tokio::sync::mpsc::error::TrySendError;
 use crate::model::*;
 
 pub struct FilePaneView {
@@ -15,13 +17,7 @@ pub struct FilePaneView {
 
 impl FilePaneView {
     pub fn ui(&mut self, ui: &mut Ui, id_source: &str, focused: bool) {
-
-        if focused {
-            self.handle_arrow_down(ui);
-            self.handle_arrow_up(ui);
-            self.handle_enter(ui);
-            self.handle_backspace(ui);
-        }
+        self.handle_keyboard(ui, focused);
 
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
@@ -111,18 +107,34 @@ impl FilePaneView {
         let new_index = (current_index + direction).rem_euclid(len) as usize;
 
         let event = NavigatedEvent::SelectedItem(new_index);
-        self.sender.try_send(event).unwrap();
-    }
-
-
-    fn handle_backspace(&mut self, ui: &mut Ui) {
-        if ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
-            let event = NavigatedEvent::GoUpDirectory;
-            self.sender.try_send(event).unwrap();
+        match self.sender.try_send(event) {
+            Ok(_) => {}
+            Err(e) => {
+                info!("Could not send event: {:?}", e.to_string());
+            }
         }
     }
 
-    fn handle_enter(&mut self, ui: &mut Ui) {
+    fn handle_keyboard(&mut self, ui: &mut Ui, focused: bool) {
+        let mut event_handled = false;
+
+        if focused {
+            event_handled |= self.handle_arrow_down(ui);
+            event_handled |= self.handle_arrow_up(ui);
+            event_handled |= self.handle_enter(ui);
+            event_handled |= self.handle_backspace(ui);
+        }
+    }
+
+    fn handle_backspace(&mut self, ui: &mut Ui) -> bool {
+        if ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
+            let event = NavigatedEvent::GoUpDirectory;
+            self.sender.try_send(event).unwrap();
+            true
+        } else { false }
+    }
+
+    fn handle_enter(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
             let selected_item = self.items.iter()
                 .find(|item| item.selected && item.item_type == ItemType::Directory);
@@ -131,18 +143,21 @@ impl FilePaneView {
                 let event = NavigatedEvent::OpenDirectory(path);
                 self.sender.try_send(event).unwrap();
             }
-        }
+            true
+        } else { false }
     }
 
-    fn handle_arrow_up(&mut self, ui: &mut Ui) {
+    fn handle_arrow_up(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
             self.navigate(-1);
-        }
+            true
+        } else { false }
     }
 
-    fn handle_arrow_down(&mut self, ui: &mut Ui) {
+    fn handle_arrow_down(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
             self.navigate(1);
-        }
+            true
+        } else { false }
     }
 }
