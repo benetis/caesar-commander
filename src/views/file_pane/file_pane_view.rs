@@ -53,6 +53,15 @@ impl FilePaneView {
     }
 
     fn draw_item(&self, ui: &mut Ui, item: &Item) {
+        let row_height = ui.text_style_height(&TextStyle::Body);
+        let row_start = ui.cursor().min;
+        let row_end = row_start + vec2(ui.max_rect().max.x, row_height);
+
+        if item.selected {
+            let rect = Rect::from_min_max(row_start, row_end);
+            ui.painter().rect_filled(rect, 0.0, Color32::from_rgb(230, 230, 230)); // Slightly darker background
+        }
+
         ui.horizontal(|ui| {
             for col in &self.columns {
                 ui.horizontal_wrapped(|ui| {
@@ -64,14 +73,12 @@ impl FilePaneView {
     }
 
     fn draw_item_cell(&self, ui: &mut Ui, item: &Item, col_name: &str) {
-        let prefix = if item.selected { "🔹" } else { "    " };
-
         let content = match col_name {
             "Icon" => match item.item_type {
                 ItemType::File => "📄".to_string(),
                 ItemType::Directory => "📁".to_string(),
             },
-            "Name" => format!("{} {}", prefix, item.name),
+            "Name" => format!("{}", item.name),
             "Size" => format!("{} bytes", item.size),
             "Modified" => item.modified.to_rfc2822(),
             _ => "".to_string(),
