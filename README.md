@@ -1,6 +1,6 @@
 # Caesar Commander
 
-File manager. **App is not for use**
+File manager. **App is not for use. Just experimental.**
 
 Exploring Rust & egui. 
 
