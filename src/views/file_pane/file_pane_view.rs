@@ -4,8 +4,6 @@ use crate::views::file_pane::file_pane::NavigatedEvent;
 use egui::*;
 use egui::text::LayoutJob;
 use log::info;
-use tokio::sync::mpsc::error::TrySendError;
-use crate::model::*;
 
 pub struct FilePaneView {
     pub items: Vec<Item>,
@@ -16,7 +14,7 @@ pub struct FilePaneView {
 
 
 impl FilePaneView {
-    pub fn ui(&mut self, ui: &mut Ui, id_source: &str, focused: bool) {
+    pub fn ui(&mut self, ui: &mut Ui, focused: bool) {
         self.handle_keyboard(ui, focused);
 
         ui.vertical(|ui| {
@@ -116,13 +114,13 @@ impl FilePaneView {
     }
 
     fn handle_keyboard(&mut self, ui: &mut Ui, focused: bool) {
-        let mut event_handled = false;
+        let mut _event_handled = false;
 
         if focused {
-            event_handled |= self.handle_arrow_down(ui);
-            event_handled |= self.handle_arrow_up(ui);
-            event_handled |= self.handle_enter(ui);
-            event_handled |= self.handle_backspace(ui);
+            _event_handled |= self.handle_arrow_down(ui);
+            _event_handled |= self.handle_arrow_up(ui);
+            _event_handled |= self.handle_enter(ui);
+            _event_handled |= self.handle_backspace(ui);
         }
     }
 

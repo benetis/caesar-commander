@@ -22,13 +22,13 @@ impl DoublePaneView {
         ui.horizontal(|ui| {
             ui.with_layout(Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
                 ui.allocate_ui(Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
-                    self.left_file_pane.view.ui(ui, "left", self.focus_state.is_left());
+                    self.left_file_pane.view.ui(ui, self.focus_state.is_left());
                 });
             });
 
             ui.with_layout(Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
                 ui.allocate_ui(Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
-                    self.right_file_pane.view.ui(ui, "right", self.focus_state.is_right());
+                    self.right_file_pane.view.ui(ui, self.focus_state.is_right());
                 });
             });
         });

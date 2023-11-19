@@ -1,9 +1,8 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::SystemTime;
 use chrono::{DateTime, Local};
 use crate::model::*;
-use dirs;
 
 #[derive(Clone)]
 pub struct Navigator {
@@ -21,8 +20,8 @@ impl Navigator {
 
     pub fn list_contents(&self) -> Vec<Item> {
         match fs::read_dir(&self.current_path) {
-            Ok(readDir) => {
-                readDir.map(|entry| {
+            Ok(read_dir) => {
+                read_dir.map(|entry| {
                     let entry = entry.unwrap();
                     let path = entry.path();
                     let name = entry.file_name().into_string().unwrap();
@@ -44,7 +43,7 @@ impl Navigator {
                         modified: modified_dt,
                     }
                 }).collect()
-            },
+            }
             Err(e) => { panic!("Readdir panic, #{}", e.to_string()) }
         }
     }
