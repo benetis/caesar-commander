@@ -12,7 +12,7 @@ pub struct DoublePane {
 impl Default for DoublePane {
     fn default() -> Self {
         let home_dir = dirs::home_dir().expect("Could not find home directory");
-        let path = home_dir.join("commander-tmp");
+        let path = home_dir;
 
         let left_pane = FilePane::new(Navigator::new(&path));
         let right_pane = FilePane::new(Navigator::new(&path));
