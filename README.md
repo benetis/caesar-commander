@@ -1,8 +1,8 @@
 # Caesar Commander
 
-File manager. Does not work yet.
+File manager. **App is not for use**
 
-Exploring Rust & egui. App is not for use
+Exploring Rust & egui. 
 
 # Info
 
