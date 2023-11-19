@@ -78,15 +78,15 @@ impl FilePane {
         vec![
             Column {
                 name: "Icon".to_string(),
-                width: 40.0,
+                width: 30.0,
             },
             Column {
                 name: "Name".to_string(),
-                width: 200.0,
+                width: 100.0,
             },
             Column {
                 name: "Size".to_string(),
-                width: 100.0,
+                width: 60.0,
             },
             Column {
                 name: "Modified".to_string(),

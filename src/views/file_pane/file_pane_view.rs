@@ -2,6 +2,7 @@ use tokio::sync::mpsc;
 use crate::model::*;
 use crate::views::file_pane::file_pane::NavigatedEvent;
 use egui::*;
+use egui::text::LayoutJob;
 use crate::model::*;
 
 pub struct FilePaneView {
@@ -14,6 +15,14 @@ pub struct FilePaneView {
 
 impl FilePaneView {
     pub fn ui(&mut self, ui: &mut Ui, id_source: &str, focused: bool) {
+
+        if focused {
+            self.handle_arrow_down(ui);
+            self.handle_arrow_up(ui);
+            self.handle_enter(ui);
+            self.handle_backspace(ui);
+        }
+
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
                 ui.label("📂");
@@ -24,43 +33,65 @@ impl FilePaneView {
 
             ui.separator();
 
-            Grid::new(id_source)
-                .num_columns(self.columns.len())
-                .striped(true)
-                .show(ui, |ui| {
-                    if focused {
-                        self.handle_arrow_down(ui);
-                        self.handle_arrow_up(ui);
-                        self.handle_enter(ui);
-                        self.handle_backspace(ui);
-                    }
+            self.draw_headers(ui);
 
-                    // Headers
-                    for col in &self.columns {
-                        ui.label(&col.name);
-                    }
-                    ui.end_row();
-
-
-                    for item in &self.items {
-                        Self::draw_item_widget(ui, item);
-                    }
-                });
+            for item in &self.items {
+                self.draw_item(ui, item);
+            }
         });
     }
 
-    fn draw_item_widget(ui: &mut Ui, item: &Item) {
-        match item.item_type {
-            ItemType::File => ui.label("📄"),
-            ItemType::Directory => ui.label("📁"),
-        };
+    fn draw_headers(&self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            for col in &self.columns {
+                ui.horizontal_wrapped(|ui| {
+                    ui.set_width(col.width);
+                    ui.label(&col.name);
+                });
+            }
+        });
+    }
 
+    fn draw_item(&self, ui: &mut Ui, item: &Item) {
+        ui.horizontal(|ui| {
+            for col in &self.columns {
+                ui.horizontal_wrapped(|ui| {
+                    ui.set_width(col.width);
+                    self.draw_item_cell(ui, item, &col.name);
+                });
+            }
+        });
+    }
+
+    fn draw_item_cell(&self, ui: &mut Ui, item: &Item, col_name: &str) {
         let prefix = if item.selected { "🔹" } else { "    " };
 
-        ui.label(format!("{prefix}{}", &item.name));
-        ui.label(format!("{} bytes", item.size));
-        ui.label(&item.modified.to_rfc2822());
-        ui.end_row();
+        let content = match col_name {
+            "Icon" => match item.item_type {
+                ItemType::File => "📄".to_string(),
+                ItemType::Directory => "📁".to_string(),
+            },
+            "Name" => format!("{} {}", prefix, item.name),
+            "Size" => format!("{} bytes", item.size),
+            "Modified" => item.modified.to_rfc2822(),
+            _ => "".to_string(),
+        };
+
+        let mut job = LayoutJob::single_section(
+            content.to_owned(),
+            egui::TextFormat {
+                ..Default::default()
+            },
+        );
+        job.wrap = egui::text::TextWrapping {
+            max_rows: 1,
+            break_anywhere: true,
+            overflow_character: None,
+            ..Default::default()
+        };
+
+
+        ui.label(job);
     }
 
 
