@@ -6,7 +6,7 @@ use crate::model::*;
 
 #[derive(Clone)]
 pub struct Navigator {
-    current_path: PathBuf,
+    pub current_path: PathBuf,
 }
 
 impl Navigator {

@@ -21,7 +21,7 @@ async fn async_main() -> Result<(), eframe::Error> {
         options,
         Box::new(|_cc| {
             Box::new(Commander {
-                double_pane: DoublePane::default()
+                double_pane: DoublePane::new()
             })
         }),
     )

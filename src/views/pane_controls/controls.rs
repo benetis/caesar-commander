@@ -1,4 +1,3 @@
-use egui::accesskit::Role::Pane;
 use tokio::sync::mpsc;
 use crate::model::pane_controls::PaneControlsEvent;
 use crate::views::pane_controls::controls_view::PaneControlsView;

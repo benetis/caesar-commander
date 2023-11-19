@@ -1,7 +1,9 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::sync::mpsc;
+use crate::file_system::file_mutator::FileMutator;
 use crate::file_system::navigator::Navigator;
 use crate::model::{Column, Item};
+use crate::model::pane_controls::PaneControlsEvent;
 use crate::views::file_pane::file_pane_view::FilePaneView;
 
 pub struct FilePane {
@@ -40,12 +42,12 @@ impl FilePane {
         match event {
             NavigatedEvent::OpenDirectory(path) => {
                 self.navigator.open_dir(&path);
-                self.update_items();
+                self.refresh_items();
                 self.update_selected_item(0);
             }
             NavigatedEvent::GoUpDirectory => {
                 self.navigator.go_up();
-                self.update_items();
+                self.refresh_items();
                 self.update_selected_item(0);
             }
             NavigatedEvent::SelectedItem(index) => {
@@ -54,7 +56,33 @@ impl FilePane {
         }
     }
 
-    fn update_items(&mut self) {
+    pub fn handle_pane_controls_event(&mut self, event: &PaneControlsEvent, destination: &PathBuf) {
+        match event {
+            PaneControlsEvent::MoveSelected => {
+                let (index, selected_item) = self.view.items.iter().enumerate().find(|(_, item)| item.selected).unwrap();
+                let current_file_full = self.navigator.current_path.join(&selected_item.name);
+
+                println!("Moving {:?} to {:?}", current_file_full, destination.join(&selected_item.name));
+
+                FileMutator::move_file(
+                    &current_file_full,
+                    &destination.join(&selected_item.name)
+                ).unwrap();
+
+                self.refresh_items();
+
+                if self.view.items.len() > 0 {
+                    if index == self.view.items.len()   {
+                        self.update_selected_item(index - 1);
+                    } else {
+                        self.update_selected_item(index);
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn refresh_items(&mut self) {
         self.view.items = self.navigator.list_contents();
         self.view.breadcrumbs = self.navigator.breadcrumbs();
     }
@@ -71,7 +99,6 @@ impl FilePane {
                 item.deselected()
             }
         }).collect()
-
     }
 
     fn columns() -> Vec<Column> {

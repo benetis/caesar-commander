@@ -9,7 +9,9 @@ pub struct PaneControlsView {
 impl PaneControlsView {
     pub fn ui(&mut self, ui: &mut Ui) {
         ui.label("Controls");
-        if ui.button("Move F6").clicked() {
+        let _ = ui.button("Move F6");
+        
+        if ui.input(|i| i.key_pressed(Key::F6)) {
             self.sender.try_send(PaneControlsEvent::MoveSelected).unwrap();
         }
     }

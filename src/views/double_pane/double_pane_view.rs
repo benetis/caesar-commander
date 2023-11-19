@@ -13,13 +13,8 @@ pub struct DoublePaneView {
 
 impl DoublePaneView {
     pub fn ui(&mut self, ui: &mut Ui) {
-        while let Ok(event) = self.left_file_pane.receiver.try_recv() {
-            self.left_file_pane.handle_navigation_event(&event);
-        }
-
-        while let Ok(event) = self.right_file_pane.receiver.try_recv() {
-            self.right_file_pane.handle_navigation_event(&event);
-        }
+        self.handle_navigation_event();
+        self.handle_pane_controls_event();
 
         ui.horizontal(|ui| {
             ui.with_layout(Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
@@ -40,6 +35,35 @@ impl DoublePaneView {
         self.pane_controls.view.ui(ui);
 
         self.handle_focus_switch(ui);
+    }
+
+    fn handle_navigation_event(&mut self) {
+        while let Ok(event) = self.left_file_pane.receiver.try_recv() {
+            self.left_file_pane.handle_navigation_event(&event);
+        }
+
+        while let Ok(event) = self.right_file_pane.receiver.try_recv() {
+            self.right_file_pane.handle_navigation_event(&event);
+        }
+    }
+
+    fn handle_pane_controls_event(&mut self) {
+        while let Ok(event) = self.pane_controls.receiver.try_recv() {
+            match self.focus_state {
+                FocusState::LeftPane => {
+                    self.left_file_pane.handle_pane_controls_event(
+                        &event, &self.right_file_pane.navigator.current_path
+                    );
+                    self.right_file_pane.refresh_items();
+                }
+                FocusState::RightPane => {
+                    self.right_file_pane.handle_pane_controls_event(
+                        &event, &self.left_file_pane.navigator.current_path
+                    );
+                    self.left_file_pane.refresh_items();
+                }
+            }
+        }
     }
 
     fn handle_focus_switch(&mut self, ui: &mut Ui) {
