@@ -14,3 +14,4 @@ Exploring Rust & egui.
 - Arrows left/right - change panel
 - Enter - open directory
 - Backspace - go up
+- F6 move selected item to opposite pane
