@@ -1,11 +1,13 @@
 use egui::*;
 use crate::views::double_pane::double_pane::FocusState;
 use crate::views::file_pane::file_pane::FilePane;
+use crate::views::pane_controls::controls::PaneControls;
 
 pub struct DoublePaneView {
     pub left_file_pane: FilePane,
     pub right_file_pane: FilePane,
     pub focus_state: FocusState,
+    pub pane_controls: PaneControls,
 }
 
 
@@ -32,6 +34,10 @@ impl DoublePaneView {
                 });
             });
         });
+
+        ui.separator();
+
+        self.pane_controls.view.ui(ui);
 
         self.handle_focus_switch(ui);
     }
