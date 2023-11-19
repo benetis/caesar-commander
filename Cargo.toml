@@ -18,3 +18,4 @@ dirs = "5.0.1"
 [package.metadata.bundle]
 name = "CaesarCommander"
 description = "Caesar Commander"
+identifier = "me.benetis.caesar-commander"
