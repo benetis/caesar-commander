@@ -2,6 +2,7 @@
 name = "caesar-commander"
 version = "0.1.0"
 edition = "2021"
+description = "Caesar Commander"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -13,3 +14,7 @@ log = "0.4.20"
 tokio = { version = "1", features = ["full"] }
 chrono = "0.4"
 dirs = "5.0.1"
+
+[package.metadata.bundle]
+name = "CaesarCommander"
+description = "Caesar Commander"
