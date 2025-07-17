@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tokio::sync::mpsc;
 use crate::file_system::file_mutator::FileMutator;
 use crate::file_system::navigator::Navigator;

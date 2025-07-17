@@ -20,9 +20,9 @@ async fn async_main() -> Result<(), eframe::Error> {
         "caesar-commander",
         options,
         Box::new(|_cc| {
-            Box::new(Commander {
+            Ok(Box::new(Commander {
                 double_pane: DoublePane::new()
-            })
+            }))
         }),
     )
 }
