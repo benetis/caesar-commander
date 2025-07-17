@@ -1,9 +1,9 @@
-use tokio::sync::mpsc;
 use crate::model::*;
 use crate::views::file_pane::file_pane::NavigatedEvent;
-use egui::*;
 use egui::text::LayoutJob;
+use egui::*;
 use log::info;
+use tokio::sync::mpsc;
 
 pub struct FilePaneView {
     pub items: Vec<Item>,
@@ -11,7 +11,6 @@ pub struct FilePaneView {
     pub sender: mpsc::Sender<NavigatedEvent>,
     pub breadcrumbs: Vec<String>,
 }
-
 
 impl FilePaneView {
     pub fn ui(&mut self, ui: &mut Ui, focused: bool) {
@@ -30,7 +29,7 @@ impl FilePaneView {
             self.draw_headers(ui);
 
             for item in &self.items {
-                self.draw_item(ui, item);
+                self.draw_item(ui, item, focused);
             }
         });
     }
@@ -46,14 +45,14 @@ impl FilePaneView {
         });
     }
 
-    fn draw_item(&self, ui: &mut Ui, item: &Item) {
-        let row_height = ui.text_style_height(&TextStyle::Body);
+    fn draw_item(&self, ui: &mut Ui, item: &Item, focused: bool) {
+        let row_height = ui.text_style_height(&TextStyle::Body) + 6.0;
         let row_start = ui.cursor().min;
         let row_end = row_start + vec2(ui.max_rect().max.x, row_height);
 
-        if item.selected {
+        if focused && item.selected {
             let rect = Rect::from_min_max(row_start, row_end);
-            ui.painter().rect_filled(rect, 0.0, Color32::from_rgb(230, 230, 230)); // Slightly darker background
+            ui.painter().rect_stroke(rect, 0.0, Stroke::new(1.0, Color32::GRAY), StrokeKind::Inside);
         }
 
         ui.horizontal(|ui| {
@@ -91,16 +90,19 @@ impl FilePaneView {
             ..Default::default()
         };
 
-
         ui.label(job);
     }
 
-
     fn navigate(&mut self, direction: isize) {
         let len = self.items.len() as isize;
-        if len == 0 { return; }
+        if len == 0 {
+            return;
+        }
 
-        let current_index = self.items.iter().position(|item| item.selected)
+        let current_index = self
+            .items
+            .iter()
+            .position(|item| item.selected)
             .unwrap_or(0) as isize;
         let new_index = (current_index + direction).rem_euclid(len) as usize;
 
@@ -129,12 +131,16 @@ impl FilePaneView {
             let event = NavigatedEvent::TraversedUp;
             self.sender.try_send(event).unwrap();
             true
-        } else { false }
+        } else {
+            false
+        }
     }
 
     fn handle_enter(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-            let selected_item = self.items.iter()
+            let selected_item = self
+                .items
+                .iter()
                 .find(|item| item.selected && item.item_type == ItemType::Directory);
             if let Some(item) = selected_item {
                 let path = item.path.clone();
@@ -142,20 +148,26 @@ impl FilePaneView {
                 self.sender.try_send(event).unwrap();
             }
             true
-        } else { false }
+        } else {
+            false
+        }
     }
 
     fn handle_arrow_up(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
             self.navigate(-1);
             true
-        } else { false }
+        } else {
+            false
+        }
     }
 
     fn handle_arrow_down(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
             self.navigate(1);
             true
-        } else { false }
+        } else {
+            false
+        }
     }
 }
