@@ -10,8 +10,8 @@ Exploring Rust & egui.
 
 ### Shortcuts
 
-- Arrows up/down - navigate
-- Arrows left/right - change panel
-- Enter - open directory
-- Backspace - go up
-- F6 move selected item to opposite pane
+•	↑ / ↓ — Move up/down through items
+•	← / → or Tab — Switch between left/right panes
+•	Enter — Open selected folder
+•	Backspace — Go up one directory level
+•	F6 — Move selected item to the other pane
