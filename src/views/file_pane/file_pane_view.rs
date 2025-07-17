@@ -54,13 +54,17 @@ impl FilePaneView {
 
     fn draw_item(&self, ui: &mut Ui, item: &Item, focused: bool) {
         let row_height = ui.text_style_height(&TextStyle::Body) + 6.0;
-        let row_start  = ui.cursor().min;
-        let row_end    = row_start + vec2(ui.max_rect().max.x, row_height);
-        let row_rect   = Rect::from_min_max(row_start, row_end);
+        let row_start = ui.cursor().min;
+        let row_end = row_start + vec2(ui.max_rect().max.x, row_height);
+        let row_rect = Rect::from_min_max(row_start, row_end);
 
         if focused && item.selected {
-            ui.painter()
-                .rect_stroke(row_rect, 0.0, Stroke::new(1.0, Color32::GRAY), StrokeKind::Inside);
+            ui.painter().rect_stroke(
+                row_rect,
+                0.0,
+                Stroke::new(1.0, Color32::GRAY),
+                StrokeKind::Inside,
+            );
 
             ui.scroll_to_rect(row_rect, None);
         }
@@ -184,8 +188,13 @@ impl FilePaneView {
     }
 
     fn handle_page_down(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i: &InputState| i.key_pressed(Key::PageDown)) {
-            self.navigate(25);
+        if ui.input(|i| i.key_pressed(Key::PageDown)) {
+            let row_h = ui.text_style_height(&TextStyle::Body) + 6.0;
+
+            let count = (ui.available_height() / row_h).floor() as isize;
+
+            let step = if count >= 1 { count } else { 1 };
+            self.navigate(step);
             true
         } else {
             false
@@ -194,7 +203,11 @@ impl FilePaneView {
 
     fn handle_page_up(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i: &InputState| i.key_pressed(Key::PageUp)) {
-            self.navigate(-25);
+            let row_h = ui.text_style_height(&TextStyle::Body) + 6.0;
+            let count = (ui.available_height() / row_h).floor() as isize;
+
+            let step = if count >= 1 { count } else { 1 };
+            self.navigate(-step);
             true
         } else {
             false
