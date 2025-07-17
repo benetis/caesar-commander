@@ -53,9 +53,8 @@ impl FilePaneView {
     }
 
     fn draw_item(&self, ui: &mut Ui, item: &Item, focused: bool) {
-        let row_height = ui.text_style_height(&TextStyle::Body) + 6.0;
         let row_start = ui.cursor().min;
-        let row_end = row_start + vec2(ui.max_rect().max.x, row_height);
+        let row_end = row_start + vec2(ui.max_rect().max.x, Self::row_height(ui));
         let row_rect = Rect::from_min_max(row_start, row_end);
 
         if focused && item.selected {
