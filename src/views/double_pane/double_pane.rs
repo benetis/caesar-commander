@@ -24,6 +24,11 @@ impl DoublePane {
             }
         }
     }
+    
+    pub fn refresh(&mut self) {
+        self.view.left_file_pane.refresh_items();
+        self.view.right_file_pane.refresh_items();
+    }
 }
 
 pub enum FocusState {
