@@ -133,6 +133,8 @@ impl FilePaneView {
             _event_handled |= self.handle_arrow_up(ui);
             _event_handled |= self.handle_enter(ui);
             _event_handled |= self.handle_backspace(ui);
+            _event_handled |= self.handle_page_down(ui);
+            _event_handled |= self.handle_page_up(ui);
         }
     }
 
@@ -175,6 +177,24 @@ impl FilePaneView {
     fn handle_arrow_down(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
             self.navigate(1);
+            true
+        } else {
+            false
+        }
+    }
+
+    fn handle_page_down(&mut self, ui: &mut Ui) -> bool {
+        if ui.input(|i: &InputState| i.key_pressed(Key::PageDown)) {
+            self.navigate(25);
+            true
+        } else {
+            false
+        }
+    }
+
+    fn handle_page_up(&mut self, ui: &mut Ui) -> bool {
+        if ui.input(|i: &InputState| i.key_pressed(Key::PageUp)) {
+            self.navigate(-25);
             true
         } else {
             false
