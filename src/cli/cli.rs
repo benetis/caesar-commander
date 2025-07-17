@@ -1,7 +1,6 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-/// Simple file-commander with two panels.
 #[derive(Parser, Debug)]
 #[command(name = "caesar-commander")]
 pub struct Cli {

@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use tokio::sync::mpsc;
 use crate::file_system::file_mutator::FileMutator;
 use crate::file_system::navigator::Navigator;
+use crate::file_system::watcher::FileWatcher;
 use crate::model::{Column, Item};
 use crate::model::pane_controls::PaneControlsEvent;
 use crate::views::file_pane::file_pane_view::FilePaneView;
@@ -10,12 +11,14 @@ pub struct FilePane {
     pub view: FilePaneView,
     pub navigator: Navigator,
     pub receiver: mpsc::Receiver<NavigatedEvent>,
+    watcher: FileWatcher,
 }
 
 pub enum NavigatedEvent {
     DirectoryOpened(PathBuf),
     TraversedUp,
     SelectedItem(usize),
+    FilesUpdated,
 }
 
 
@@ -23,18 +26,23 @@ impl FilePane {
     pub fn new(navigator: Navigator) -> Self {
         let items = FilePane::select_item(&navigator.list_contents(), 0);
         let columns = Self::columns();
-        let mpsc = mpsc::channel(1);
+        let (tx, rx) = mpsc::channel(1);
         let breadcrumbs = navigator.breadcrumbs();
+
+        let current_path = navigator.current_path.clone();
+        let watcher = FileWatcher::new(&tx, &current_path)
+            .expect("failed to init file watcher");
 
         Self {
             view: FilePaneView {
                 items,
                 columns,
-                sender: mpsc.0,
+                sender: tx.clone(),
                 breadcrumbs,
             },
             navigator,
-            receiver: mpsc.1,
+            receiver: rx,
+            watcher,
         }
     }
 
@@ -42,16 +50,30 @@ impl FilePane {
         match event {
             NavigatedEvent::DirectoryOpened(path) => {
                 self.navigator.open_dir(&path);
+                self.watcher
+                    .watch_path(&self.navigator.current_path)
+                    .ok();
+
                 self.refresh_items();
                 self.update_selected_item(0);
             }
             NavigatedEvent::TraversedUp => {
                 self.navigator.go_up();
+                self.watcher
+                    .watch_path(&self.navigator.current_path)
+                    .ok();
+
                 self.refresh_items();
                 self.update_selected_item(0);
             }
             NavigatedEvent::SelectedItem(index) => {
                 self.update_selected_item(*index);
+            }
+            NavigatedEvent::FilesUpdated => {
+                self.refresh_items();
+                if !self.view.items.is_empty() {
+                    self.update_selected_item(0);
+                }
             }
         }
     }
