@@ -16,15 +16,18 @@ impl DoublePaneView {
         self.handle_navigation_event();
         self.handle_pane_controls_event();
 
+        const CONTROLS_HEIGHT: f32 = 80.0;
+        let pane_height = ui.available_height() - CONTROLS_HEIGHT;
+
         ui.horizontal(|ui| {
             ui.with_layout(Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
-                ui.allocate_ui(Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
+                ui.allocate_ui(Vec2::new(ui.available_width() / 2.0, pane_height), |ui| {
                     self.left_file_pane.view.ui(ui, self.focus_state.is_left());
                 });
             });
 
             ui.with_layout(Layout::left_to_right(Align::Center).with_main_justify(false), |ui| {
-                ui.allocate_ui(Vec2::new(ui.available_width() / 2.0, ui.available_height()), |ui| {
+                ui.allocate_ui(Vec2::new(ui.available_width() / 2.0, pane_height), |ui| {
                     self.right_file_pane.view.ui(ui, self.focus_state.is_right());
                 });
             });

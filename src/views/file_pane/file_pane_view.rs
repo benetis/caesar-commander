@@ -16,24 +16,32 @@ impl FilePaneView {
     pub fn ui(&mut self, ui: &mut Ui, focused: bool) {
         self.handle_keyboard(ui, focused);
 
-        ui.vertical(|ui| {
-            ui.horizontal(|ui| {
-                ui.label("📂");
-                for crumb in &self.breadcrumbs {
-                    ui.label(format!("{} /", crumb));
-                }
+        let pane_rect = vec2(ui.available_width(), ui.available_height());
+
+        ui.allocate_ui(pane_rect, |ui| {
+            ui.vertical(|ui| {
+                ui.horizontal(|ui| {
+                    ui.label("📂");
+                    for crumb in &self.breadcrumbs {
+                        ui.label(format!("{} /", crumb));
+                    }
+                });
+                ui.separator();
+                self.draw_headers(ui);
+                ui.separator();
+
+                ScrollArea::vertical()
+                    .auto_shrink([false, false])
+                    .id_salt(self as *const _ as usize)
+                    .show(ui, |ui| {
+                        ui.set_max_width(f32::INFINITY);
+                        for item in &self.items {
+                            self.draw_item(ui, item, focused);
+                        }
+                    });
             });
-
-            ui.separator();
-
-            self.draw_headers(ui);
-
-            for item in &self.items {
-                self.draw_item(ui, item, focused);
-            }
         });
     }
-
     fn draw_headers(&self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             for col in &self.columns {
@@ -52,7 +60,12 @@ impl FilePaneView {
 
         if focused && item.selected {
             let rect = Rect::from_min_max(row_start, row_end);
-            ui.painter().rect_stroke(rect, 0.0, Stroke::new(1.0, Color32::GRAY), StrokeKind::Inside);
+            ui.painter().rect_stroke(
+                rect,
+                0.0,
+                Stroke::new(1.0, Color32::GRAY),
+                StrokeKind::Inside,
+            );
         }
 
         ui.horizontal(|ui| {
