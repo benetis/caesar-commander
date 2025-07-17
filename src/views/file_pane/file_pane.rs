@@ -64,7 +64,7 @@ impl FilePane {
 
                 println!("Moving {:?} to {:?}", current_file_full, destination.join(&selected_item.name));
 
-                FileMutator::move_file(
+                FileMutator::durable_move(
                     &current_file_full,
                     &destination.join(&selected_item.name)
                 ).unwrap();

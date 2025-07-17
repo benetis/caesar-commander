@@ -598,6 +598,7 @@ dependencies = [
  "egui",
  "env_logger",
  "log",
+ "tempfile",
  "tokio",
 ]
 
