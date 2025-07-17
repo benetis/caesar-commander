@@ -34,7 +34,6 @@ impl FilePaneView {
                     .auto_shrink([false, false])
                     .id_salt(self as *const _ as usize)
                     .show(ui, |ui| {
-                        ui.set_max_width(f32::INFINITY);
                         for item in &self.items {
                             self.draw_item(ui, item, focused);
                         }
@@ -55,17 +54,15 @@ impl FilePaneView {
 
     fn draw_item(&self, ui: &mut Ui, item: &Item, focused: bool) {
         let row_height = ui.text_style_height(&TextStyle::Body) + 6.0;
-        let row_start = ui.cursor().min;
-        let row_end = row_start + vec2(ui.max_rect().max.x, row_height);
+        let row_start  = ui.cursor().min;
+        let row_end    = row_start + vec2(ui.max_rect().max.x, row_height);
+        let row_rect   = Rect::from_min_max(row_start, row_end);
 
         if focused && item.selected {
-            let rect = Rect::from_min_max(row_start, row_end);
-            ui.painter().rect_stroke(
-                rect,
-                0.0,
-                Stroke::new(1.0, Color32::GRAY),
-                StrokeKind::Inside,
-            );
+            ui.painter()
+                .rect_stroke(row_rect, 0.0, Stroke::new(1.0, Color32::GRAY), StrokeKind::Inside);
+
+            ui.scroll_to_rect(row_rect, None);
         }
 
         ui.horizontal(|ui| {
