@@ -2,18 +2,16 @@ use crate::file_system::navigator::Navigator;
 use crate::views::double_pane::double_pane_view::DoublePaneView;
 use crate::views::file_pane::file_pane::FilePane;
 use crate::views::pane_controls::controls::PaneControls;
+use std::path::PathBuf;
 
 pub struct DoublePane {
     pub view: DoublePaneView
 }
 
 impl DoublePane {
-    pub fn new() -> Self {
-        let home_dir = dirs::home_dir().expect("Could not find home directory");
-        let path = home_dir;
-
-        let left_pane = FilePane::new(Navigator::new(&path));
-        let right_pane = FilePane::new(Navigator::new(&path));
+    pub fn new(left: PathBuf, right: PathBuf) -> Self {
+        let left_pane = FilePane::new(Navigator::new(&left));
+        let right_pane = FilePane::new(Navigator::new(&right));
 
         let pane_controls = PaneControls::new();
 
