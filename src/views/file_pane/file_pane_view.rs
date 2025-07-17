@@ -126,7 +126,7 @@ impl FilePaneView {
 
     fn handle_backspace(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
-            let event = NavigatedEvent::GoUpDirectory;
+            let event = NavigatedEvent::TraversedUp;
             self.sender.try_send(event).unwrap();
             true
         } else { false }
@@ -138,7 +138,7 @@ impl FilePaneView {
                 .find(|item| item.selected && item.item_type == ItemType::Directory);
             if let Some(item) = selected_item {
                 let path = item.path.clone();
-                let event = NavigatedEvent::OpenDirectory(path);
+                let event = NavigatedEvent::DirectoryOpened(path);
                 self.sender.try_send(event).unwrap();
             }
             true

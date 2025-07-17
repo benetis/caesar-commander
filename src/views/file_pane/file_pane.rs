@@ -13,8 +13,8 @@ pub struct FilePane {
 }
 
 pub enum NavigatedEvent {
-    OpenDirectory(PathBuf),
-    GoUpDirectory,
+    DirectoryOpened(PathBuf),
+    TraversedUp,
     SelectedItem(usize),
 }
 
@@ -40,12 +40,12 @@ impl FilePane {
 
     pub fn handle_navigation_event(&mut self, event: &NavigatedEvent) {
         match event {
-            NavigatedEvent::OpenDirectory(path) => {
+            NavigatedEvent::DirectoryOpened(path) => {
                 self.navigator.open_dir(&path);
                 self.refresh_items();
                 self.update_selected_item(0);
             }
-            NavigatedEvent::GoUpDirectory => {
+            NavigatedEvent::TraversedUp => {
                 self.navigator.go_up();
                 self.refresh_items();
                 self.update_selected_item(0);
