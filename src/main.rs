@@ -1,13 +1,13 @@
 use crate::cli::cli::Cli;
 use crate::views::double_pane::double_pane::DoublePane;
-use eframe::App;
+use eframe::{App, NativeOptions};
 use egui::*;
 use log::info;
 
-mod views;
+mod cli;
 mod file_system;
 mod model;
-mod cli;
+mod views;
 
 fn main() -> Result<(), eframe::Error> {
     let rt = tokio::runtime::Runtime::new().unwrap();
@@ -21,7 +21,13 @@ async fn async_main() -> Result<(), eframe::Error> {
 
     let (left_path, right_path) = Cli::parse_and_paths();
 
-    let options = eframe::NativeOptions::default();
+    let options = NativeOptions {
+        viewport: ViewportBuilder::default()
+            .with_inner_size(vec2(1024.0, 768.0))
+            .with_min_inner_size(vec2(640.0, 480.0)),
+        ..Default::default()
+    };
+
     eframe::run_native(
         "caesar-commander",
         options,
@@ -36,9 +42,8 @@ async fn async_main() -> Result<(), eframe::Error> {
 }
 
 pub struct Commander {
-    double_pane: DoublePane
+    double_pane: DoublePane,
 }
-
 
 impl App for Commander {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
