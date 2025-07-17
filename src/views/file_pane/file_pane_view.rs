@@ -189,12 +189,7 @@ impl FilePaneView {
 
     fn handle_page_down(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(Key::PageDown)) {
-            let row_h = ui.text_style_height(&TextStyle::Body) + 6.0;
-
-            let count = (ui.available_height() / row_h).floor() as isize;
-
-            let step = if count >= 1 { count } else { 1 };
-            self.navigate(step);
+            self.navigate(Self::page_step(ui));
             true
         } else {
             false
@@ -203,14 +198,20 @@ impl FilePaneView {
 
     fn handle_page_up(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i: &InputState| i.key_pressed(Key::PageUp)) {
-            let row_h = ui.text_style_height(&TextStyle::Body) + 6.0;
-            let count = (ui.available_height() / row_h).floor() as isize;
-
-            let step = if count >= 1 { count } else { 1 };
-            self.navigate(-step);
+            self.navigate(-Self::page_step(ui));
             true
         } else {
             false
         }
+    }
+
+    fn row_height(ui: &Ui) -> f32 {
+        ui.text_style_height(&TextStyle::Body) + 6.0
+    }
+
+    fn page_step(ui: &Ui) -> isize {
+        let rh = Self::row_height(ui);
+        let count = (ui.available_height() / rh).floor() as isize;
+        if count >= 1 { count } else { 1 }
     }
 }
