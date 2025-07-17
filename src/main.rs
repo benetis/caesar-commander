@@ -19,7 +19,7 @@ async fn async_main() -> Result<(), eframe::Error> {
     env_logger::init();
     info!("Starting Caesar commander");
 
-    let (left_path, right_path) = Cli::parse_and_paths();
+    let params = Cli::new();
 
     let options = NativeOptions {
         viewport: ViewportBuilder::default()
@@ -31,9 +31,11 @@ async fn async_main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "caesar-commander",
         options,
-        Box::new(|_cc| {
+        Box::new(|cc| {
+            cc.egui_ctx.set_pixels_per_point(params.scale);
+
             let app = Commander {
-                double_pane: DoublePane::new(left_path, right_path),
+                double_pane: DoublePane::new(params.left_path, params.right_path),
             };
 
             Ok(Box::new(app))

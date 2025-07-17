@@ -1,4 +1,5 @@
 pub mod pane_controls;
+pub mod params;
 
 use std::path::PathBuf;
 use chrono::{DateTime, Local};
