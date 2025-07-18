@@ -24,7 +24,7 @@ pub struct Column {
     pub width: f32,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum MoveDirection {
     Up,
     Down,
