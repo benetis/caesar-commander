@@ -1,8 +1,8 @@
 use crate::file_system::navigator::Navigator;
 use crate::ui::double_pane::double_pane_view::DoublePaneView;
-use crate::ui::file_pane::file_pane::FilePane;
 use crate::ui::pane_controls::controls::PaneControls;
 use std::path::PathBuf;
+use crate::ui::file_pane::container::FilePaneContainer;
 
 pub struct DoublePane {
     pub view: DoublePaneView
@@ -10,8 +10,8 @@ pub struct DoublePane {
 
 impl DoublePane {
     pub fn new(left: PathBuf, right: PathBuf) -> Self {
-        let left_pane = FilePane::new(Navigator::new(&left));
-        let right_pane = FilePane::new(Navigator::new(&right));
+        let left_pane = FilePaneContainer::new(Navigator::new(&left));
+        let right_pane = FilePaneContainer::new(Navigator::new(&right));
 
         let pane_controls = PaneControls::new();
 
