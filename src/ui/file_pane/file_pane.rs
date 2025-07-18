@@ -1,17 +1,11 @@
-
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use tokio::sync::mpsc;
-use log::info;
 use egui::text::LayoutJob;
 use egui::*;
+use tokio::sync::mpsc;
 
 use crate::model::*;
-use crate::model::pane_controls::PaneControlsEvent;
-use crate::file_system::file_mutator::FileMutator;
-use crate::file_system::navigator::Navigator;
-use crate::file_system::watcher::FileWatcher;
 use crate::ui::keyboard::keyboard;
 
 #[derive(Debug)]
