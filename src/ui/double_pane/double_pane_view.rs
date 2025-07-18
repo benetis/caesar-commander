@@ -1,7 +1,7 @@
 use egui::*;
-use crate::views::double_pane::double_pane::FocusState;
-use crate::views::file_pane::file_pane::FilePane;
-use crate::views::pane_controls::controls::PaneControls;
+use crate::ui::double_pane::double_pane::FocusState;
+use crate::ui::file_pane::file_pane::FilePane;
+use crate::ui::pane_controls::controls::PaneControls;
 
 pub struct DoublePaneView {
     pub left_file_pane: FilePane,

@@ -1,6 +1,6 @@
 use tokio::sync::mpsc;
 use crate::model::pane_controls::PaneControlsEvent;
-use crate::views::pane_controls::controls_view::PaneControlsView;
+use crate::ui::pane_controls::controls_view::PaneControlsView;
 
 pub struct PaneControls {
     pub view: PaneControlsView,

@@ -1,5 +1,5 @@
 use crate::cli::cli::Cli;
-use crate::views::double_pane::double_pane::DoublePane;
+use crate::ui::double_pane::double_pane::DoublePane;
 use eframe::{App, NativeOptions};
 use egui::*;
 use log::info;
@@ -7,7 +7,7 @@ use log::info;
 mod cli;
 mod file_system;
 mod model;
-mod views;
+mod ui;
 
 fn main() -> Result<(), eframe::Error> {
     let rt = tokio::runtime::Runtime::new().unwrap();

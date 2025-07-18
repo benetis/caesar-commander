@@ -1,7 +1,7 @@
 use crate::file_system::navigator::Navigator;
-use crate::views::double_pane::double_pane_view::DoublePaneView;
-use crate::views::file_pane::file_pane::FilePane;
-use crate::views::pane_controls::controls::PaneControls;
+use crate::ui::double_pane::double_pane_view::DoublePaneView;
+use crate::ui::file_pane::file_pane::FilePane;
+use crate::ui::pane_controls::controls::PaneControls;
 use std::path::PathBuf;
 
 pub struct DoublePane {
