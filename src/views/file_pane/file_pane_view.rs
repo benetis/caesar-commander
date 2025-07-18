@@ -42,8 +42,9 @@ impl FilePaneView {
                     .show(ui, |ui| {
                         for (i, item) in self.items.iter().enumerate() {
                             let selected = self.selected_indices.contains(&i);
+                            let is_cursor = self.cursor_index == i;
 
-                            self.draw_item(ui, item, focused, selected);
+                            self.draw_item(ui, item, focused, selected, is_cursor);
                         }
                     });
             });
@@ -84,19 +85,19 @@ impl FilePaneView {
         });
     }
 
-    fn draw_item(&self, ui: &mut Ui, item: &Item, pane_focused: bool, selected: bool) {
+    fn draw_item(&self, ui: &mut Ui, item: &Item, pane_focused: bool, selected: bool, is_cursor: bool) {
         let row_start = ui.cursor().min;
         let row_end = row_start + vec2(ui.max_rect().max.x, Self::row_height(ui));
         let row_rect = Rect::from_min_max(row_start, row_end);
 
-        if pane_focused && selected {
+        // If this is the cursor row, draw a border (regardless of selection)
+        if pane_focused && is_cursor {
             ui.painter().rect_stroke(
                 row_rect,
                 0.0,
-                Stroke::new(1.0, Color32::GRAY),
+                Stroke::new(2.0, Color32::LIGHT_BLUE),
                 StrokeKind::Inside,
             );
-
             ui.scroll_to_rect(row_rect, None);
         }
 
@@ -104,13 +105,13 @@ impl FilePaneView {
             for col in &self.columns {
                 ui.horizontal_wrapped(|ui| {
                     ui.set_width(col.width);
-                    self.draw_item_cell(ui, item, &col.name);
+                    self.draw_item_cell(ui, item, &col.name, selected);
                 });
             }
         });
     }
 
-    fn draw_item_cell(&self, ui: &mut Ui, item: &Item, col_name: &str) {
+    fn draw_item_cell(&self, ui: &mut Ui, item: &Item, col_name: &str, selected_text: bool) {
         let content = match col_name {
             "Icon" => match item.item_type {
                 ItemType::File => "📄".to_string(),
@@ -122,13 +123,19 @@ impl FilePaneView {
             _ => "".to_string(),
         };
 
+        let mut text_color = ui.visuals().text_color();
+        if selected_text {
+            text_color = Color32::from_rgb(60, 120, 255);
+        }
+
         let mut job = LayoutJob::single_section(
             content.to_owned(),
-            egui::TextFormat {
+            TextFormat {
+                color: text_color,
                 ..Default::default()
             },
         );
-        job.wrap = egui::text::TextWrapping {
+        job.wrap = text::TextWrapping {
             max_rows: 1,
             break_anywhere: true,
             overflow_character: None,
