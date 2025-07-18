@@ -68,7 +68,7 @@ impl FilePaneView {
     pub fn select_range(&mut self, anchor: usize, index: usize) {
         let (start, end) = if anchor <= index { (anchor, index) } else { (index, anchor) };
         self.selected_indices.clear();
-        for i in start..=end {
+        for i in start..end {
             self.selected_indices.insert(i);
         }
         self.cursor_index = index;
@@ -208,7 +208,7 @@ impl FilePaneView {
     }
 
     fn handle_arrow_down(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
+        if ui.input(|i| i.key_pressed(Key::ArrowDown)) {
             let len = self.items.len();
             if len == 0 { return true; }
             let shift = ui.input(|i| i.modifiers.shift);
@@ -226,7 +226,7 @@ impl FilePaneView {
     }
 
     fn handle_arrow_up(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
+        if ui.input(|i| i.key_pressed(Key::ArrowUp)) {
             let len = self.items.len();
             if len == 0 { return true; }
             let shift = ui.input(|i| i.modifiers.shift);
