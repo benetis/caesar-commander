@@ -20,7 +20,7 @@ pub enum NavigatedEvent {
     TraversedUp,
     SelectionMoved {
         index: usize,
-        multi: bool,
+        selection: bool,
     },
     FilesUpdated,
 }
@@ -48,7 +48,7 @@ impl FilePane {
             selection_anchor: Some(0),
         };
 
-        view.select_first();
+        view.move_cursor_to_first();
 
         Self {
             view,
@@ -72,16 +72,14 @@ impl FilePane {
                 self.refresh_items();
                 self.view.select_single(0);
             }
-            NavigatedEvent::SelectionMoved { index, multi: shift } => {
-                let len = self.view.items.len();
-                if *index < len {
-                    if *shift {
-                        let anchor = self.view.selection_anchor.unwrap_or(self.view.cursor_index);
-
-                        self.view.select_range(anchor, *index);
-                    } else {
-                        self.view.select_single(*index);
-                    }
+            NavigatedEvent::SelectionMoved { index, selection } => {
+                if *selection {
+                    // Shift is held: do a range selection from anchor to index
+                    let anchor = self.view.selection_anchor.unwrap_or(self.view.cursor_index);
+                    self.view.select_range(anchor, *index);
+                } else {
+                    self.view.cursor_index = *index;
+                    self.view.selection_anchor = Some(*index);
                 }
             }
             NavigatedEvent::FilesUpdated => {

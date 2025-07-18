@@ -51,9 +51,10 @@ impl FilePaneView {
         });
     }
 
-    pub fn select_first(&mut self) {
+    pub fn move_cursor_to_first(&mut self) {
         if !self.items.is_empty() {
-            self.select_single(0);
+            self.cursor_index = 0;
+            self.selection_anchor = Some(0);
         }
     }
 
@@ -156,7 +157,7 @@ impl FilePaneView {
 
         let event = NavigatedEvent::SelectionMoved {
             index: new_index,
-            multi: false,
+            selection: false,
         };
         match self.sender.try_send(event) {
             Ok(_) => {}
@@ -215,7 +216,7 @@ impl FilePaneView {
             let new_index = (self.cursor_index + 1).min(len - 1);
             let event = NavigatedEvent::SelectionMoved {
                 index: new_index,
-                multi: shift,
+                selection: shift,
             };
             let _ = self.sender.try_send(event);
             true
@@ -232,7 +233,7 @@ impl FilePaneView {
             let new_index = self.cursor_index.saturating_sub(1);
             let event = NavigatedEvent::SelectionMoved {
                 index: new_index,
-                multi: shift,
+                selection: shift,
             };
             let _ = self.sender.try_send(event);
             true
