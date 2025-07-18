@@ -16,6 +16,7 @@ pub struct FilePaneView {
     pub selected_indices: BTreeSet<usize>,
     pub cursor_index: usize,
     pub selection_anchor: Option<usize>,
+    pub last_direction: Option<MoveDirection>,
 }
 
 impl FilePaneView {
@@ -168,6 +169,7 @@ impl FilePaneView {
             index: new_index,
             selection: false,
             additive: false,
+            direction: None,
         };
         match self.sender.try_send(event) {
             Ok(_) => {}
@@ -229,8 +231,10 @@ impl FilePaneView {
                 index: new_index,
                 selection: shift,
                 additive: ctrl,
+                direction: Some(MoveDirection::Down),
             };
             let _ = self.sender.try_send(event);
+
             true
         } else {
             false
@@ -249,8 +253,10 @@ impl FilePaneView {
                 index: new_index,
                 selection: shift,
                 additive: ctrl,
+                direction: Some(MoveDirection::Up),
             };
             let _ = self.sender.try_send(event);
+
             true
         } else {
             false

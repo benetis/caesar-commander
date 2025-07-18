@@ -1,8 +1,9 @@
+use std::cmp::PartialEq;
 use crate::file_system::file_mutator::FileMutator;
 use crate::file_system::navigator::Navigator;
 use crate::file_system::watcher::FileWatcher;
 use crate::model::pane_controls::PaneControlsEvent;
-use crate::model::Column;
+use crate::model::{Column, MoveDirection};
 use crate::views::file_pane::file_pane_view::FilePaneView;
 use std::collections::BTreeSet;
 use std::path::PathBuf;
@@ -22,10 +23,10 @@ pub enum NavigatedEvent {
         index: usize,
         selection: bool,
         additive: bool,
+        direction: Option<MoveDirection>
     },
     FilesUpdated,
 }
-
 
 impl FilePane {
     pub fn new(navigator: Navigator) -> Self {
@@ -47,6 +48,7 @@ impl FilePane {
             selected_indices: BTreeSet::new(),
             cursor_index: 0,
             selection_anchor: Some(0),
+            last_direction: None,
         };
 
         view.move_cursor_to_first();
@@ -73,8 +75,13 @@ impl FilePane {
                 self.refresh_items();
                 self.view.select_single(0);
             }
-            NavigatedEvent::SelectionMoved { index, selection, additive } => {
+            NavigatedEvent::SelectionMoved { index, selection, additive, direction } => {
+                let prev_dir = self.view.last_direction;
+                self.view.last_direction = *direction;
+
                 if *selection && *additive {
+                    self.reset_anchor_if_diff_dir(direction, prev_dir);
+
                     let anchor = self.view.selection_anchor.unwrap_or(self.view.cursor_index);
                     self.view.add_range_to_selection(anchor, *index);
                 } else if *selection {
@@ -91,6 +98,12 @@ impl FilePane {
                     self.view.select_single(0);
                 }
             }
+        }
+    }
+
+    fn reset_anchor_if_diff_dir(&mut self, direction: &Option<MoveDirection>, prev_dir: Option<MoveDirection>) {
+        if prev_dir != *direction {
+            self.view.selection_anchor = Some(self.view.cursor_index);
         }
     }
 
