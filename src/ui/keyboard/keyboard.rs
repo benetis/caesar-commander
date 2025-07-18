@@ -1,9 +1,9 @@
 use egui::{Key, Ui};
 
 use crate::model::{ItemType, MoveDirection};
-use crate::ui::file_pane::file_pane::{FilePaneView, NavigatedEvent};
+use crate::ui::file_pane::view::{View, NavigatedEvent};
 
-pub fn handle(view: &mut FilePaneView, ui: &mut Ui, focused: bool) {
+pub fn handle(view: &mut View, ui: &mut Ui, focused: bool) {
     if !focused {
         return;
     }
@@ -16,20 +16,20 @@ pub fn handle(view: &mut FilePaneView, ui: &mut Ui, focused: bool) {
         | handle_page_down(view, ui);
 }
 
-fn handle_backspace(view: &mut FilePaneView, ui: &mut Ui) -> bool {
+fn handle_backspace(view: &mut View, ui: &mut Ui) -> bool {
     if ui.input(|i| i.key_pressed(Key::Backspace)) {
-        let _ = view.sender.try_send(NavigatedEvent::TraversedUp);
+        let _ = view.sender().try_send(NavigatedEvent::TraversedUp);
         true
     } else {
         false
     }
 }
 
-fn handle_enter(view: &mut FilePaneView, ui: &mut Ui) -> bool {
+fn handle_enter(view: &mut View, ui: &mut Ui) -> bool {
     if ui.input(|i| i.key_pressed(Key::Enter)) {
-        if let Some(item) = view.items.get(view.cursor_index)
+        if let Some(item) = view.get_cursor_item()
             .filter(|it| it.item_type == ItemType::Directory) {
-            let _ = view.sender.try_send(NavigatedEvent::DirectoryOpened(item.path.clone()));
+            let _ = view.sender().try_send(NavigatedEvent::DirectoryOpened(item.path.clone()));
         }
         true
     } else {
@@ -37,7 +37,7 @@ fn handle_enter(view: &mut FilePaneView, ui: &mut Ui) -> bool {
     }
 }
 
-fn handle_arrow_down(view: &mut FilePaneView, ui: &mut Ui) -> bool {
+fn handle_arrow_down(view: &mut View, ui: &mut Ui) -> bool {
     if ui.input(|i| i.key_pressed(Key::ArrowDown)) {
         move_cursor(view, ui, 1, MoveDirection::Down);
         true
@@ -46,7 +46,7 @@ fn handle_arrow_down(view: &mut FilePaneView, ui: &mut Ui) -> bool {
     }
 }
 
-fn handle_arrow_up(view: &mut FilePaneView, ui: &mut Ui) -> bool {
+fn handle_arrow_up(view: &mut View, ui: &mut Ui) -> bool {
     if ui.input(|i| i.key_pressed(Key::ArrowUp)) {
         move_cursor(view, ui, -1, MoveDirection::Up);
         true
@@ -55,35 +55,35 @@ fn handle_arrow_up(view: &mut FilePaneView, ui: &mut Ui) -> bool {
     }
 }
 
-fn handle_page_down(view: &mut FilePaneView, ui: &mut Ui) -> bool {
+fn handle_page_down(view: &mut View, ui: &mut Ui) -> bool {
     if ui.input(|i| i.key_pressed(Key::PageDown)) {
-        navigate(view, FilePaneView::page_step(ui));
+        navigate(view, View::page_step(ui));
         true
     } else {
         false
     }
 }
 
-fn handle_page_up(view: &mut FilePaneView, ui: &mut Ui) -> bool {
+fn handle_page_up(view: &mut View, ui: &mut Ui) -> bool {
     if ui.input(|i| i.key_pressed(Key::PageUp)) {
-        navigate(view, -FilePaneView::page_step(ui));
+        navigate(view, -View::page_step(ui));
         true
     } else {
         false
     }
 }
 
-fn move_cursor(view: &mut FilePaneView, ui: &Ui, delta: isize, direction: MoveDirection) {
-    let len = view.items.len();
+fn move_cursor(view: &mut View, ui: &Ui, delta: isize, direction: MoveDirection) {
+    let len = view.item_count();
     if len == 0 { return; }
 
-    let new_index = ((view.cursor_index as isize) + delta)
+    let new_index = ((view.cursor_index() as isize) + delta)
         .clamp(0, (len - 1) as isize) as usize;
 
     let shift = ui.input(|i| i.modifiers.shift);
     let ctrl  = ui.input(|i| i.modifiers.ctrl);
 
-    let _ = view.sender.try_send(NavigatedEvent::SelectionMoved {
+    let _ = view.sender().try_send(NavigatedEvent::SelectionMoved {
         index: new_index,
         selection: shift,
         additive: ctrl,
@@ -91,14 +91,14 @@ fn move_cursor(view: &mut FilePaneView, ui: &Ui, delta: isize, direction: MoveDi
     });
 }
 
-fn navigate(view: &mut FilePaneView, amount: isize) {
-    let len = view.items.len() as isize;
+fn navigate(view: &mut View, amount: isize) {
+    let len = view.item_count() as isize;
     if len == 0 { return; }
 
-    let current_index = view.cursor_index as isize;
+    let current_index = view.cursor_index() as isize;
     let new_index = (current_index + amount).rem_euclid(len) as usize;
 
-    let _ = view.sender.try_send(NavigatedEvent::SelectionMoved {
+    let _ = view.sender().try_send(NavigatedEvent::SelectionMoved {
         index: new_index,
         selection: false,
         additive: false,

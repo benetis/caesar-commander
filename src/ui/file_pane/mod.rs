@@ -1,2 +1,4 @@
-pub mod file_pane;
+pub mod view;
 pub mod container;
+
+pub use container::Container;

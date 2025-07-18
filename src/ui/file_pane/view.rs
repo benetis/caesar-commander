@@ -21,20 +21,39 @@ pub enum NavigatedEvent {
     FilesUpdated,
 }
 
-pub struct FilePaneView {
-    pub items: Vec<Item>,
-    pub columns: Vec<Column>,
-    pub sender: mpsc::Sender<NavigatedEvent>,
-    pub breadcrumbs: Vec<String>,
+pub struct View {
+    items: Vec<Item>,
+    columns: Vec<Column>,
+    sender: mpsc::Sender<NavigatedEvent>,
+    breadcrumbs: Vec<String>,
 
-    // Multiselect
-    pub selected_indices: BTreeSet<usize>,
-    pub cursor_index: usize,
-    pub selection_anchor: Option<usize>,
-    pub last_direction: Option<MoveDirection>,
+    selected_indices: BTreeSet<usize>,
+    cursor_index: usize,
+    selection_anchor: Option<usize>,
+    last_direction: Option<MoveDirection>,
 }
 
-impl FilePaneView {
+impl View {
+    pub fn new(
+        items: Vec<Item>,
+        columns: Vec<Column>,
+        sender: mpsc::Sender<NavigatedEvent>,
+        breadcrumbs: Vec<String>,
+    ) -> Self {
+        let mut view = Self {
+            items,
+            columns,
+            sender,
+            breadcrumbs,
+            selected_indices: BTreeSet::new(),
+            cursor_index: 0,
+            selection_anchor: Some(0),
+            last_direction: None,
+        };
+        view.move_cursor_to_first();
+        view
+    }
+
     pub fn ui(&mut self, ui: &mut Ui, focused: bool) {
         keyboard::handle(self, ui, focused);
 
@@ -51,6 +70,7 @@ impl FilePaneView {
                 ui.separator();
                 self.draw_headers(ui);
                 ui.separator();
+                ui.separator();
 
                 ScrollArea::vertical()
                     .auto_shrink([false, false])
@@ -59,12 +79,65 @@ impl FilePaneView {
                         for (i, item) in self.items.iter().enumerate() {
                             let selected = self.selected_indices.contains(&i);
                             let is_cursor = self.cursor_index == i;
-
                             self.draw_item(ui, item, focused, selected, is_cursor);
                         }
                     });
             });
         });
+    }
+
+    pub fn handle_selection_moved(
+        &mut self,
+        index: usize,
+        selection: bool,
+        additive: bool,
+        direction: Option<MoveDirection>
+    ) {
+        let prev_dir = self.last_direction;
+        self.last_direction = direction;
+
+        if selection && additive {
+            self.reset_anchor_if_diff_dir(direction, prev_dir);
+            let anchor = self.selection_anchor.unwrap_or(self.cursor_index);
+            self.add_range_to_selection(anchor, index);
+        } else if selection {
+            let anchor = self.selection_anchor.unwrap_or(self.cursor_index);
+            self.select_range(anchor, index);
+        } else {
+            self.cursor_index = index;
+            self.selection_anchor = Some(index);
+        }
+    }
+
+    pub fn update_contents(&mut self, items: Vec<Item>, breadcrumbs: Vec<String>) {
+        self.items = items;
+        self.breadcrumbs = breadcrumbs;
+    }
+
+    pub fn get_selected_items(&self) -> Vec<Item> {
+        self.selected_indices.iter()
+            .filter_map(|&i| self.items.get(i).cloned())
+            .collect()
+    }
+
+    pub fn get_selected_indices(&self) -> &BTreeSet<usize> {
+        &self.selected_indices
+    }
+
+    pub fn get_cursor_item(&self) -> Option<&Item> {
+        self.items.get(self.cursor_index)
+    }
+
+    pub fn item_count(&self) -> usize {
+        self.items.len()
+    }
+
+    pub fn cursor_index(&self) -> usize {
+        self.cursor_index
+    }
+
+    pub fn sender(&self) -> &mpsc::Sender<NavigatedEvent> {
+        &self.sender
     }
 
     pub fn move_cursor_to_first(&mut self) {
@@ -81,7 +154,7 @@ impl FilePaneView {
         self.selection_anchor = Some(index);
     }
 
-    pub fn select_range(&mut self, anchor: usize, index: usize) {
+    fn select_range(&mut self, anchor: usize, index: usize) {
         let (start, end) = if anchor <= index { (anchor, index) } else { (index, anchor) };
         self.selected_indices.clear();
         for i in start..=end {
@@ -91,13 +164,19 @@ impl FilePaneView {
         self.selection_anchor = Some(anchor);
     }
 
-    pub fn add_range_to_selection(&mut self, anchor: usize, index: usize) {
+    fn add_range_to_selection(&mut self, anchor: usize, index: usize) {
         let (start, end) = if anchor <= index { (anchor, index) } else { (index, anchor) };
         for i in start..=end {
             self.selected_indices.insert(i);
         }
         self.cursor_index = index;
         self.selection_anchor = Some(anchor);
+    }
+
+    fn reset_anchor_if_diff_dir(&mut self, direction: Option<MoveDirection>, prev_dir: Option<MoveDirection>) {
+        if prev_dir != direction {
+            self.selection_anchor = Some(self.cursor_index);
+        }
     }
 
     pub fn page_step(ui: &Ui) -> isize {
@@ -121,7 +200,6 @@ impl FilePaneView {
         let row_end = row_start + vec2(ui.max_rect().max.x, Self::row_height(ui));
         let row_rect = Rect::from_min_max(row_start, row_end);
 
-        // Cursor outline
         if pane_focused && is_cursor {
             ui.painter().rect_stroke(
                 row_rect,

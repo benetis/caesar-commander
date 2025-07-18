@@ -10,7 +10,7 @@ use notify::{
 };
 use tokio::sync::mpsc;
 use tokio::time;
-use crate::ui::file_pane::file_pane::NavigatedEvent;
+use crate::ui::file_pane::view::NavigatedEvent;
 
 pub struct FileWatcher {
     pub _sender: mpsc::Sender<NavigatedEvent>,
