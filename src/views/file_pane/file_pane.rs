@@ -21,6 +21,7 @@ pub enum NavigatedEvent {
     SelectionMoved {
         index: usize,
         selection: bool,
+        additive: bool,
     },
     FilesUpdated,
 }
@@ -72,9 +73,11 @@ impl FilePane {
                 self.refresh_items();
                 self.view.select_single(0);
             }
-            NavigatedEvent::SelectionMoved { index, selection } => {
-                if *selection {
-                    // Shift is held: do a range selection from anchor to index
+            NavigatedEvent::SelectionMoved { index, selection, additive } => {
+                if *selection && *additive {
+                    let anchor = self.view.selection_anchor.unwrap_or(self.view.cursor_index);
+                    self.view.add_range_to_selection(anchor, *index);
+                } else if *selection {
                     let anchor = self.view.selection_anchor.unwrap_or(self.view.cursor_index);
                     self.view.select_range(anchor, *index);
                 } else {

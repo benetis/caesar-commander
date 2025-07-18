@@ -75,6 +75,15 @@ impl FilePaneView {
         self.selection_anchor = Some(anchor);
     }
 
+    pub fn add_range_to_selection(&mut self, anchor: usize, index: usize) {
+        let (start, end) = if anchor <= index { (anchor, index) } else { (index, anchor) };
+        for i in start..end {
+            self.selected_indices.insert(i);
+        }
+        self.cursor_index = index;
+        self.selection_anchor = Some(anchor);
+    }
+
     fn draw_headers(&self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             for col in &self.columns {
@@ -158,6 +167,7 @@ impl FilePaneView {
         let event = NavigatedEvent::SelectionMoved {
             index: new_index,
             selection: false,
+            additive: false,
         };
         match self.sender.try_send(event) {
             Ok(_) => {}
@@ -212,11 +222,13 @@ impl FilePaneView {
             let len = self.items.len();
             if len == 0 { return true; }
             let shift = ui.input(|i| i.modifiers.shift);
+            let ctrl = ui.input(|i| i.modifiers.ctrl);
 
             let new_index = (self.cursor_index + 1).min(len - 1);
             let event = NavigatedEvent::SelectionMoved {
                 index: new_index,
                 selection: shift,
+                additive: ctrl,
             };
             let _ = self.sender.try_send(event);
             true
@@ -230,10 +242,13 @@ impl FilePaneView {
             let len = self.items.len();
             if len == 0 { return true; }
             let shift = ui.input(|i| i.modifiers.shift);
+            let ctrl = ui.input(|i| i.modifiers.ctrl);
+
             let new_index = self.cursor_index.saturating_sub(1);
             let event = NavigatedEvent::SelectionMoved {
                 index: new_index,
                 selection: shift,
+                additive: ctrl,
             };
             let _ = self.sender.try_send(event);
             true
