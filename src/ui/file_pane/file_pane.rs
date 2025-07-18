@@ -12,6 +12,7 @@ use crate::model::pane_controls::PaneControlsEvent;
 use crate::file_system::file_mutator::FileMutator;
 use crate::file_system::navigator::Navigator;
 use crate::file_system::watcher::FileWatcher;
+use crate::ui::keyboard::keyboard;
 
 #[derive(Debug)]
 pub enum NavigatedEvent {
@@ -41,7 +42,7 @@ pub struct FilePaneView {
 
 impl FilePaneView {
     pub fn ui(&mut self, ui: &mut Ui, focused: bool) {
-        self.handle_keyboard(ui, focused);
+        keyboard::handle(self, ui, focused);
 
         let pane_rect = vec2(ui.available_width(), ui.available_height());
 
@@ -103,6 +104,12 @@ impl FilePaneView {
         }
         self.cursor_index = index;
         self.selection_anchor = Some(anchor);
+    }
+
+    pub fn page_step(ui: &Ui) -> isize {
+        let rh = Self::row_height(ui);
+        let count = (ui.available_height() / rh).floor() as isize;
+        count.max(1)
     }
 
     fn draw_headers(&self, ui: &mut Ui) {
@@ -174,103 +181,8 @@ impl FilePaneView {
         ui.label(job);
     }
 
-    fn handle_keyboard(&mut self, ui: &mut Ui, focused: bool) {
-        if !focused { return; }
-
-        let _ = self.handle_backspace(ui)
-            | self.handle_enter(ui)
-            | self.handle_arrow_up(ui)
-            | self.handle_arrow_down(ui)
-            | self.handle_page_up(ui)
-            | self.handle_page_down(ui);
-    }
-
-    fn handle_backspace(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(Key::Backspace)) {
-            let _ = self.sender.try_send(NavigatedEvent::TraversedUp);
-            true
-        } else { false }
-    }
-
-    fn handle_enter(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(Key::Enter)) {
-            if let Some(item) = self.items.get(self.cursor_index)
-                .filter(|it| it.item_type == ItemType::Directory) {
-                let _ = self.sender.try_send(NavigatedEvent::DirectoryOpened(item.path.clone()));
-            }
-            true
-        } else { false }
-    }
-
-    fn handle_arrow_down(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(Key::ArrowDown)) {
-            self.move_cursor(ui, 1, MoveDirection::Down);
-            true
-        } else { false }
-    }
-
-    fn handle_arrow_up(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(Key::ArrowUp)) {
-            self.move_cursor(ui, -1, MoveDirection::Up);
-            true
-        } else { false }
-    }
-
-    fn handle_page_down(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(Key::PageDown)) {
-            self.navigate(Self::page_step(ui));
-            true
-        } else { false }
-    }
-
-    fn handle_page_up(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(Key::PageUp)) {
-            self.navigate(-Self::page_step(ui));
-            true
-        } else { false }
-    }
-
-    fn move_cursor(&mut self, ui: &Ui, delta: isize, direction: MoveDirection) {
-        let len = self.items.len();
-        if len == 0 { return; }
-
-        let new_index = ((self.cursor_index as isize) + delta)
-            .clamp(0, (len - 1) as isize) as usize;
-
-        let shift = ui.input(|i| i.modifiers.shift);
-        let ctrl = ui.input(|i| i.modifiers.ctrl);
-
-        let _ = self.sender.try_send(NavigatedEvent::SelectionMoved {
-            index: new_index,
-            selection: shift,
-            additive: ctrl,
-            direction: Some(direction),
-        });
-    }
-
-    fn navigate(&mut self, amount: isize) {
-        let len = self.items.len() as isize;
-        if len == 0 { return; }
-
-        let current_index = self.cursor_index as isize;
-        let new_index = (current_index + amount).rem_euclid(len) as usize;
-
-        let _ = self.sender.try_send(NavigatedEvent::SelectionMoved {
-            index: new_index,
-            selection: false,
-            additive: false,
-            direction: None,
-        });
-    }
-
     fn row_height(ui: &Ui) -> f32 {
         ui.text_style_height(&TextStyle::Body) + 6.0
-    }
-
-    fn page_step(ui: &Ui) -> isize {
-        let rh = Self::row_height(ui);
-        let count = (ui.available_height() / rh).floor() as isize;
-        count.max(1)
     }
 }
 
