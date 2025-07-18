@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::path::PathBuf;
 use tokio::sync::mpsc;
 use crate::file_system::file_mutator::FileMutator;
@@ -17,14 +18,17 @@ pub struct FilePane {
 pub enum NavigatedEvent {
     DirectoryOpened(PathBuf),
     TraversedUp,
-    SelectedItem(usize),
+    SelectionMoved {
+        index: usize,
+        multi: bool,
+    },
     FilesUpdated,
 }
 
 
 impl FilePane {
     pub fn new(navigator: Navigator) -> Self {
-        let items = FilePane::select_item(&navigator.list_contents(), 0);
+        let items = navigator.list_contents();
         let columns = Self::columns();
         let (tx, rx) = mpsc::channel(1);
         let breadcrumbs = navigator.breadcrumbs();
@@ -39,6 +43,11 @@ impl FilePane {
                 columns,
                 sender: tx.clone(),
                 breadcrumbs,
+
+                // Multiselect
+                selected_indices: BTreeSet::new(),
+                cursor_index: 0,
+                selection_anchor: Some(0),
             },
             navigator,
             receiver: rx,
@@ -50,29 +59,32 @@ impl FilePane {
         match event {
             NavigatedEvent::DirectoryOpened(path) => {
                 self.navigator.open_dir(&path);
-                self.watcher
-                    .watch_path(&self.navigator.current_path)
-                    .ok();
-
+                self.watcher.watch_path(&self.navigator.current_path).ok();
                 self.refresh_items();
-                self.update_selected_item(0);
+                self.view.select_single(0);
             }
             NavigatedEvent::TraversedUp => {
                 self.navigator.go_up();
-                self.watcher
-                    .watch_path(&self.navigator.current_path)
-                    .ok();
-
+                self.watcher.watch_path(&self.navigator.current_path).ok();
                 self.refresh_items();
-                self.update_selected_item(0);
+                self.view.select_single(0);
             }
-            NavigatedEvent::SelectedItem(index) => {
-                self.update_selected_item(*index);
+            NavigatedEvent::SelectionMoved { index, multi: shift } => {
+                let len = self.view.items.len();
+                if *index < len {
+                    if *shift {
+                        let anchor = self.view.selection_anchor.unwrap_or(self.view.cursor_index);
+
+                        self.view.select_range(anchor, *index);
+                    } else {
+                        self.view.select_single(*index);
+                    }
+                }
             }
             NavigatedEvent::FilesUpdated => {
                 self.refresh_items();
                 if !self.view.items.is_empty() {
-                    self.update_selected_item(0);
+                    self.view.select_single(0);
                 }
             }
         }
@@ -81,24 +93,28 @@ impl FilePane {
     pub fn handle_pane_controls_event(&mut self, event: &PaneControlsEvent, destination: &PathBuf) {
         match event {
             PaneControlsEvent::MoveSelected => {
-                let (index, selected_item) = self.view.items.iter().enumerate().find(|(_, item)| item.selected).unwrap();
-                let current_file_full = self.navigator.current_path.join(&selected_item.name);
+                let selected_indices: Vec<usize> = self.view.selected_indices.iter().cloned().collect();
 
-                println!("Moving {:?} to {:?}", current_file_full, destination.join(&selected_item.name));
+                for &i in &selected_indices {
+                    if let Some(item) = self.view.items.get(i) {
+                        let src = self.navigator.current_path.join(&item.name);
+                        let dst = destination.join(&item.name);
 
-                FileMutator::durable_move(
-                    &current_file_full,
-                    &destination.join(&selected_item.name)
-                ).unwrap();
+                        println!("Moving {:?} to {:?}", src, dst);
+
+                        if let Err(e) = FileMutator::durable_move(&src, &dst) {
+                            println!("Failed to move {:?}: {:?}", src, e);
+                        }
+                    }
+                }
 
                 self.refresh_items();
 
-                if self.view.items.len() > 0 {
-                    if index == self.view.items.len()   {
-                        self.update_selected_item(index - 1);
-                    } else {
-                        self.update_selected_item(index);
-                    }
+                let count = self.view.items.len();
+                if count > 0 {
+                    let next = selected_indices.iter().max().map(|x| x+1).unwrap_or(0);
+                    let index = next.min(count - 1);
+                    self.view.select_single(index);
                 }
             }
         }
@@ -107,20 +123,6 @@ impl FilePane {
     pub fn refresh_items(&mut self) {
         self.view.items = self.navigator.list_contents();
         self.view.breadcrumbs = self.navigator.breadcrumbs();
-    }
-
-    fn update_selected_item(&mut self, index: usize) {
-        self.view.items = Self::select_item(&self.view.items, index);
-    }
-
-    fn select_item(items: &Vec<Item>, index: usize) -> Vec<Item> {
-        items.iter().enumerate().map(|(i, item)| {
-            if i == index {
-                item.selected()
-            } else {
-                item.deselected()
-            }
-        }).collect()
     }
 
     fn columns() -> Vec<Column> {

@@ -37,7 +37,6 @@ impl Navigator {
                     Item {
                         name,
                         path,
-                        selected: false,
                         item_type,
                         size,
                         modified: modified_dt,

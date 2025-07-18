@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use crate::model::*;
 use crate::views::file_pane::file_pane::NavigatedEvent;
 use egui::text::LayoutJob;
@@ -10,6 +11,11 @@ pub struct FilePaneView {
     pub columns: Vec<Column>,
     pub sender: mpsc::Sender<NavigatedEvent>,
     pub breadcrumbs: Vec<String>,
+
+    // Multiselect
+    pub selected_indices: BTreeSet<usize>,
+    pub cursor_index: usize,
+    pub selection_anchor: Option<usize>,
 }
 
 impl FilePaneView {
@@ -34,8 +40,10 @@ impl FilePaneView {
                     .auto_shrink([false, false])
                     .id_salt(self as *const _ as usize)
                     .show(ui, |ui| {
-                        for item in &self.items {
-                            self.draw_item(ui, item, focused);
+                        for (i, item) in self.items.iter().enumerate() {
+                            let selected = self.selected_indices.contains(&i);
+
+                            self.draw_item(ui, item, focused, selected);
                         }
                     });
             });
@@ -52,12 +60,12 @@ impl FilePaneView {
         });
     }
 
-    fn draw_item(&self, ui: &mut Ui, item: &Item, focused: bool) {
+    fn draw_item(&self, ui: &mut Ui, item: &Item, pane_focused: bool, selected: bool) {
         let row_start = ui.cursor().min;
         let row_end = row_start + vec2(ui.max_rect().max.x, Self::row_height(ui));
         let row_rect = Rect::from_min_max(row_start, row_end);
 
-        if focused && item.selected {
+        if pane_focused && selected {
             ui.painter().rect_stroke(
                 row_rect,
                 0.0,
@@ -112,14 +120,13 @@ impl FilePaneView {
             return;
         }
 
-        let current_index = self
-            .items
-            .iter()
-            .position(|item| item.selected)
-            .unwrap_or(0) as isize;
+        let current_index = self.cursor_index as isize;
         let new_index = (current_index + direction).rem_euclid(len) as usize;
 
-        let event = NavigatedEvent::SelectedItem(new_index);
+        let event = NavigatedEvent::SelectionMoved {
+            index: new_index,
+            multi: false,
+        };
         match self.sender.try_send(event) {
             Ok(_) => {}
             Err(e) => {
@@ -153,10 +160,10 @@ impl FilePaneView {
 
     fn handle_enter(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-            let selected_item = self
-                .items
-                .iter()
-                .find(|item| item.selected && item.item_type == ItemType::Directory);
+
+            let selected_item = self.items.get(self.cursor_index)
+                .filter(|item| item.item_type == ItemType::Directory);
+
             if let Some(item) = selected_item {
                 let path = item.path.clone();
                 let event = NavigatedEvent::DirectoryOpened(path);
@@ -168,23 +175,41 @@ impl FilePaneView {
         }
     }
 
-    fn handle_arrow_up(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-            self.navigate(-1);
+    fn handle_arrow_down(&mut self, ui: &mut Ui) -> bool {
+        if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
+            let len = self.items.len();
+            if len == 0 { return true; }
+            let shift = ui.input(|i| i.modifiers.shift);
+
+            let new_index = (self.cursor_index + 1).min(len - 1);
+            let event = NavigatedEvent::SelectionMoved {
+                index: new_index,
+                multi: shift,
+            };
+            let _ = self.sender.try_send(event);
             true
         } else {
             false
         }
     }
 
-    fn handle_arrow_down(&mut self, ui: &mut Ui) -> bool {
-        if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-            self.navigate(1);
+    fn handle_arrow_up(&mut self, ui: &mut Ui) -> bool {
+        if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
+            let len = self.items.len();
+            if len == 0 { return true; }
+            let shift = ui.input(|i| i.modifiers.shift);
+            let new_index = self.cursor_index.saturating_sub(1);
+            let event = NavigatedEvent::SelectionMoved {
+                index: new_index,
+                multi: shift,
+            };
+            let _ = self.sender.try_send(event);
             true
         } else {
             false
         }
     }
+
 
     fn handle_page_down(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(Key::PageDown)) {
@@ -202,6 +227,34 @@ impl FilePaneView {
         } else {
             false
         }
+    }
+
+    pub fn select_single(&mut self, index: usize) {
+        self.selected_indices.clear();
+        self.selected_indices.insert(index);
+        self.cursor_index = index;
+        self.selection_anchor = Some(index);
+    }
+
+    pub fn select_range(&mut self, anchor: usize, index: usize) {
+        let (start, end) = if anchor <= index { (anchor, index) } else { (index, anchor) };
+        self.selected_indices.clear();
+        for i in start..=end {
+            self.selected_indices.insert(i);
+        }
+        self.cursor_index = index;
+        self.selection_anchor = Some(anchor);
+    }
+
+    pub fn toggle_selection(&mut self, index: usize) {
+        if !self.selected_indices.insert(index) {
+            self.selected_indices.remove(&index);
+        }
+        self.cursor_index = index;
+    }
+
+    fn selected_items(&self) -> impl Iterator<Item=&Item> {
+        self.selected_indices.iter().filter_map(move |&i| self.items.get(i))
     }
 
     fn row_height(ui: &Ui) -> f32 {
