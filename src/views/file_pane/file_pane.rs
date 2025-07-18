@@ -1,12 +1,12 @@
-use std::collections::BTreeSet;
-use std::path::PathBuf;
-use tokio::sync::mpsc;
 use crate::file_system::file_mutator::FileMutator;
 use crate::file_system::navigator::Navigator;
 use crate::file_system::watcher::FileWatcher;
-use crate::model::{Column, Item};
 use crate::model::pane_controls::PaneControlsEvent;
+use crate::model::Column;
 use crate::views::file_pane::file_pane_view::FilePaneView;
+use std::collections::BTreeSet;
+use std::path::PathBuf;
+use tokio::sync::mpsc;
 
 pub struct FilePane {
     pub view: FilePaneView,
@@ -36,19 +36,22 @@ impl FilePane {
         let current_path = navigator.current_path.clone();
         let watcher = FileWatcher::new(&tx, &current_path)
             .expect("failed to init file watcher");
+        let mut view = FilePaneView {
+            items,
+            columns,
+            sender: tx.clone(),
+            breadcrumbs,
+
+            // Multiselect
+            selected_indices: BTreeSet::new(),
+            cursor_index: 0,
+            selection_anchor: Some(0),
+        };
+
+        view.select_first();
 
         Self {
-            view: FilePaneView {
-                items,
-                columns,
-                sender: tx.clone(),
-                breadcrumbs,
-
-                // Multiselect
-                selected_indices: BTreeSet::new(),
-                cursor_index: 0,
-                selection_anchor: Some(0),
-            },
+            view,
             navigator,
             receiver: rx,
             watcher,

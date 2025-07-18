@@ -49,6 +49,30 @@ impl FilePaneView {
             });
         });
     }
+
+    pub fn select_first(&mut self) {
+        if !self.items.is_empty() {
+            self.select_single(0);
+        }
+    }
+
+    pub fn select_single(&mut self, index: usize) {
+        self.selected_indices.clear();
+        self.selected_indices.insert(index);
+        self.cursor_index = index;
+        self.selection_anchor = Some(index);
+    }
+
+    pub fn select_range(&mut self, anchor: usize, index: usize) {
+        let (start, end) = if anchor <= index { (anchor, index) } else { (index, anchor) };
+        self.selected_indices.clear();
+        for i in start..=end {
+            self.selected_indices.insert(i);
+        }
+        self.cursor_index = index;
+        self.selection_anchor = Some(anchor);
+    }
+
     fn draw_headers(&self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             for col in &self.columns {
@@ -210,7 +234,6 @@ impl FilePaneView {
         }
     }
 
-
     fn handle_page_down(&mut self, ui: &mut Ui) -> bool {
         if ui.input(|i| i.key_pressed(Key::PageDown)) {
             self.navigate(Self::page_step(ui));
@@ -229,30 +252,7 @@ impl FilePaneView {
         }
     }
 
-    pub fn select_single(&mut self, index: usize) {
-        self.selected_indices.clear();
-        self.selected_indices.insert(index);
-        self.cursor_index = index;
-        self.selection_anchor = Some(index);
-    }
-
-    pub fn select_range(&mut self, anchor: usize, index: usize) {
-        let (start, end) = if anchor <= index { (anchor, index) } else { (index, anchor) };
-        self.selected_indices.clear();
-        for i in start..=end {
-            self.selected_indices.insert(i);
-        }
-        self.cursor_index = index;
-        self.selection_anchor = Some(anchor);
-    }
-
-    pub fn toggle_selection(&mut self, index: usize) {
-        if !self.selected_indices.insert(index) {
-            self.selected_indices.remove(&index);
-        }
-        self.cursor_index = index;
-    }
-
+    #[allow(dead_code)]
     fn selected_items(&self) -> impl Iterator<Item=&Item> {
         self.selected_indices.iter().filter_map(move |&i| self.items.get(i))
     }
